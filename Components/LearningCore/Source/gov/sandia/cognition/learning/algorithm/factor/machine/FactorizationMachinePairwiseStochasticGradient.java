@@ -232,7 +232,7 @@ public class FactorizationMachinePairwiseStochasticGradient
         final double difference = positiveScore - negativeScore;
 // TODO: Remove this debugging.
 /*        
-double beforeNLL = -SigmoidFunction.logistic(difference);
+double beforeNLL = -Math.log(SigmoidFunction.logistic(difference));
 double beforeRegularization = this.getRegularizationPenalty();
 double beforeObjective = beforeNLL
     + 0.5 * beforeRegularization;
@@ -250,8 +250,9 @@ double beforeObjective = beforeNLL
             return false;
         }
         
-        this.totalError += Math.log1p(error);
-        
+        final double nll = -Math.log(SigmoidFunction.logistic(difference));
+        this.totalError += nll;
+
         final double stepSize = this.learningRate;
         // No need to update bias for ranking since it cancels out.
         // this.result.setBias(0.0);
@@ -336,8 +337,8 @@ double beforeObjective = beforeNLL
         }
 // TODO: Remove this debugging.
 /*
-double afterNLL =  -SigmoidFunction.logistic(
-            this.result.evaluate(positive) - this.result.evaluate(negative));
+double afterNLL = -Math.log(SigmoidFunction.logistic(
+            this.result.evaluate(positive) - this.result.evaluate(negative)));
 double afterRegularization = this.getRegularizationPenalty();
                 double afterObjective = afterNLL
                     + 0.5 * afterRegularization;

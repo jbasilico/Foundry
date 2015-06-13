@@ -27,7 +27,7 @@ import java.util.LinkedList;
  * @author jdbasil
  */
 public class MeanL1CostFunctionTest
-    extends SupervisedCostFunctionTestHarness<Vector,Vector>
+    extends SupervisedCostFunctionTestHarness<Vector,Vector,Evaluator<? super Vector, ? extends Vector>>
 {
     
     /**
@@ -47,7 +47,7 @@ public class MeanL1CostFunctionTest
 
 
     @Override
-    public AbstractSupervisedCostFunction<Vector, Vector> createInstance()
+    public MeanL1CostFunction createInstance()
     {
         return new MeanL1CostFunction( this.createRandomCostParameters() );
     }

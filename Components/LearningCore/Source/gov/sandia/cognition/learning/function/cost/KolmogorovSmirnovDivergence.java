@@ -49,10 +49,9 @@ public class KolmogorovSmirnovDivergence<DataType extends Number>
     }
 
     @Override
-    public Double evaluate(
+    public double evaluateAsDouble(
         UnivariateDistribution<DataType> target)
     {
-
         CumulativeDistributionFunction<DataType> cdf = target.getCDF();
         KolmogorovSmirnovConfidence.Statistic kstest =
             KolmogorovSmirnovConfidence.evaluateNullHypothesis(

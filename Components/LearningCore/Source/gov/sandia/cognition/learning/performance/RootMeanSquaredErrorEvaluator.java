@@ -15,7 +15,9 @@
 
 package gov.sandia.cognition.learning.performance;
 
+import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.learning.data.TargetEstimatePair;
+import gov.sandia.cognition.learning.function.cost.AbstractSupervisedCostFunction;
 import java.util.Collection;
 
 /**
@@ -30,7 +32,7 @@ import java.util.Collection;
  * @since   2.0
  */
 public class RootMeanSquaredErrorEvaluator<InputType>
-    extends AbstractSupervisedPerformanceEvaluator<InputType, Double, Double, Double>
+    extends AbstractSupervisedCostFunction<InputType, Double, Evaluator<? super InputType, ? extends Double>>
 {
 
     /**
@@ -41,16 +43,11 @@ public class RootMeanSquaredErrorEvaluator<InputType>
         super();
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param  data {@inheritDoc}
-     * @return {@inheritDoc}
-     */
-    public Double evaluatePerformance(
-        final Collection<? extends TargetEstimatePair<? extends Double, ? extends Double>> data )
+    @Override
+    public double evaluatePerformanceAsDouble(
+        final Collection<? extends TargetEstimatePair<? extends Double, ? extends Double>> data)
     {
-        return RootMeanSquaredErrorEvaluator.compute( data );
+        return RootMeanSquaredErrorEvaluator.compute(data);
     }
 
     /**

@@ -89,6 +89,7 @@ public abstract class AbstractSupervisedPerformanceEvaluator<InputType, TargetTy
         return this.evaluatePerformance( data );
     }
 
+    @Override
     public abstract ResultType evaluatePerformance(
         Collection<? extends TargetEstimatePair<? extends TargetType, ? extends EstimateType>> data );
 

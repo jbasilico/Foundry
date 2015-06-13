@@ -14,7 +14,7 @@
 
 package gov.sandia.cognition.learning.function.cost;
 
-import gov.sandia.cognition.util.AbstractCloneableSerializable;
+import gov.sandia.cognition.math.AbstractScalarFunction;
 import gov.sandia.cognition.util.ObjectUtil;
 
 /**
@@ -28,7 +28,7 @@ import gov.sandia.cognition.util.ObjectUtil;
  * @since 3.1
  */
 public abstract class AbstractCostFunction<EvaluatedType, CostParametersType>
-    extends AbstractCloneableSerializable
+    extends AbstractScalarFunction<EvaluatedType>
     implements CostFunction<EvaluatedType, CostParametersType>
 {
 

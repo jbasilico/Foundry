@@ -26,15 +26,15 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 /**
- * JUnit tests for class SumSquaredErrorCostFunctionTest
+ * JUnit tests for class SumSquaredErrorCostFunction
  * @author Kevin R. Dixon
  */
 public class SumSquaredErrorCostFunctionTest
-    extends SupervisedCostFunctionTestHarness<Vector,Vector>
+    extends SupervisedCostFunctionTestHarness<Vector,Vector,Evaluator<? super Vector, ? extends Vector>>
 {
 
     /**
-     * Entry point for JUnit tests for class SumSquaredErrorCostFunctionTest
+     * Entry point for JUnit tests for class SumSquaredErrorCostFunction
      * @param testName name of this test
      */
     public SumSquaredErrorCostFunctionTest(

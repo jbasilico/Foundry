@@ -15,20 +15,28 @@
 package gov.sandia.cognition.learning.function.cost;
 
 import gov.sandia.cognition.evaluator.Evaluator;
-import gov.sandia.cognition.learning.algorithm.gradient.GradientDescendable;
 import gov.sandia.cognition.math.matrix.Vector;
 import java.util.Collection;
 
 /**
- * Interface describing a cost function that can (largely) be computed in
+ * Defines a differentiable cost function that can (largely) be computed in
  * parallel.
+ * 
  * @author Kevin R. Dixon
  * @since 2.1
+ * @param <InputType> The type of input for the evaluated function.
+ * @param <OutputType> The type of output for the evaluated function.
+ * @param <EvaluatedType> The type of evaluated function.
+ * @param <DifferentiableEvaluatedType> The type of evaluated function that
+ *      can be differentiated.
  */
-public interface ParallelizableCostFunction 
-    extends SupervisedCostFunction<Vector,Vector>, DifferentiableCostFunction
+public interface ParallelizableCostFunction<InputType, OutputType, EvaluatedType extends Evaluator<? super InputType, ? extends OutputType>, DifferentiableEvaluatedType extends EvaluatedType>
+    extends SupervisedCostFunction<InputType, OutputType, EvaluatedType>, 
+        DifferentiableCostFunction<InputType, OutputType, DifferentiableEvaluatedType>
 {
+// TODO: This currently forces all parallelizable cost functions to be differentiable. Should this be loosened or perhaps another interface introduced for differentiation?
     
+// TODO: The results of the parallelization seem to just be Object here. Would be nice if there was a way to preserve type safety.
     /**
      * Computes the partial (linear) component of the cost function.
      * This portion will be performed in parallel.
@@ -38,8 +46,8 @@ public interface ParallelizableCostFunction
      * Object that contains the linear component of the cost function
      */
     public Object evaluatePartial(
-        Evaluator<? super Vector, ? extends Vector> evaluator );
-    
+        EvaluatedType evaluator);
+
     /**
      * Amalgamates the linear components of the cost function into a single
      * Double. This portion will be performed in sequence.
@@ -49,7 +57,7 @@ public interface ParallelizableCostFunction
      * Cost function of the partial results
      */
     public Double evaluateAmalgamate(
-        Collection<Object> partialResults );
+        Collection<Object> partialResults);
     
     /**
      * Computes the partial (linear) component of the cost function gradient.
@@ -61,7 +69,7 @@ public interface ParallelizableCostFunction
      * Object that contains the linear component of the gradient
      */
     public Object computeParameterGradientPartial(
-        GradientDescendable function );
+        DifferentiableEvaluatedType function);
 
     /**
      * Amalgamates the linear components of the cost gradient function into a
@@ -72,6 +80,6 @@ public interface ParallelizableCostFunction
      * Vector describing the gradient
      */
     public Vector computeParameterGradientAmalgamate(
-        Collection<Object> partialResults );
+        Collection<Object> partialResults);
 
 }

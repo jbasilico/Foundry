@@ -14,6 +14,7 @@
 
 package gov.sandia.cognition.learning.function.cost;
 
+import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.learning.data.DatasetUtil;
 import gov.sandia.cognition.learning.data.InputOutputPair;
 import gov.sandia.cognition.learning.data.TargetEstimatePair;
@@ -28,7 +29,7 @@ import java.util.Collection;
  * @since 1.0
  */
 public class MeanL1CostFunction
-    extends AbstractSupervisedCostFunction<Vector, Vector>
+    extends AbstractSupervisedCostFunction<Vector, Vector, Evaluator<? super Vector, ? extends Vector>>
 {
 
     /**
@@ -59,7 +60,7 @@ public class MeanL1CostFunction
     }
 
     @Override
-    public Double evaluatePerformance(
+    public double evaluatePerformanceAsDouble(
         Collection<? extends TargetEstimatePair<? extends Vector, ? extends Vector>> data )
     {
         double denominator = 0.0;

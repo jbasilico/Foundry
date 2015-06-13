@@ -41,16 +41,9 @@ import java.util.Collection;
     url="http://research.microsoft.com/~cmbishop/PRML/"
 )
 public class ClusterDistortionMeasure<DataType,ClusterType extends Cluster<DataType>>
-    extends AbstractCloneableSerializable
-    implements CostFunction<Collection<? extends ClusterType>,ClusterDivergenceFunction<? super ClusterType, ? super DataType>>
+    extends AbstractCostFunction<Collection<? extends ClusterType>,ClusterDivergenceFunction<? super ClusterType, ? super DataType>>
 {
-    
-    /**
-     * Divergence function that defines the cost function
-     */
-    private ClusterDivergenceFunction<? super ClusterType, ? super DataType> costParameters;
-    
-    
+
     /** 
      * Creates a new instance of ClusterDistortionMeasure 
      */
@@ -78,7 +71,8 @@ public class ClusterDistortionMeasure<DataType,ClusterType extends Cluster<DataT
         return (ClusterDistortionMeasure<DataType,ClusterType>) super.clone();
     }    
     
-    public Double evaluate(
+    @Override
+    public double evaluateAsDouble(
         Collection<? extends ClusterType> target )
     {
         
@@ -100,7 +94,7 @@ public class ClusterDistortionMeasure<DataType,ClusterType extends Cluster<DataT
      * @return
      * Distortion for a single member
      */
-    public Double evaluate(
+    public double evaluate(
         ClusterType cluster )
     {
         
@@ -113,17 +107,6 @@ public class ClusterDistortionMeasure<DataType,ClusterType extends Cluster<DataT
         
         return sum;
         
-    }
-
-    public ClusterDivergenceFunction<? super ClusterType, ? super DataType> getCostParameters()
-    {
-        return this.costParameters;
-    }
-
-    public void setCostParameters(
-        final ClusterDivergenceFunction<? super ClusterType, ? super DataType> costParameters )
-    {
-        this.costParameters = costParameters;
     }
 
 }

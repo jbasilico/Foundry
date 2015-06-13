@@ -47,7 +47,7 @@ public class NegativeLogLikelihood<DataType>
         super(costParameters);
     }
 
-    public Double evaluate(
+    public double evaluateAsDouble(
         ComputableDistribution<DataType> target)
     {
         ProbabilityFunction<DataType> f =

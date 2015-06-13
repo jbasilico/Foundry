@@ -18,7 +18,6 @@ import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.algorithm.AnytimeAlgorithmWrapper;
 import gov.sandia.cognition.learning.algorithm.minimization.FunctionMinimizer;
 import gov.sandia.cognition.learning.data.InputOutputPair;
-import gov.sandia.cognition.learning.function.cost.DifferentiableCostFunction;
 import gov.sandia.cognition.learning.function.cost.ParallelizedCostFunctionContainer;
 import gov.sandia.cognition.learning.function.cost.SumSquaredErrorCostFunction;
 import gov.sandia.cognition.learning.function.cost.SupervisedCostFunction;
@@ -61,13 +60,13 @@ public abstract class AbstractMinimizerBasedParameterCostMinimizer
     /**
      * Cost function to compute the cost of objectToOptimize
      */
-    private SupervisedCostFunction<Vector,Vector> costFunction;
+    private SupervisedCostFunction<Vector, Vector, ? super Evaluator<? super Vector, ? extends Vector>> costFunction;
     
     /**
      * Default cost function, {@code SumSquaredErrorCostFunction}
      */
-    public static final SupervisedCostFunction<Vector, Vector> DEFAULT_COST_FUNCTION =
-        new ParallelizedCostFunctionContainer( new SumSquaredErrorCostFunction() );
+    public static final SupervisedCostFunction<Vector, Vector, ? super Evaluator<? super Vector, ? extends Vector>> DEFAULT_COST_FUNCTION =
+        new ParallelizedCostFunctionContainer<>( new SumSquaredErrorCostFunction() );
     
 
     /**
@@ -90,7 +89,7 @@ public abstract class AbstractMinimizerBasedParameterCostMinimizer
      */
     public AbstractMinimizerBasedParameterCostMinimizer(
         FunctionMinimizer<Vector,Double,? super EvaluatorType> algorithm,
-        SupervisedCostFunction<Vector,Vector> costFunction )
+        SupervisedCostFunction<Vector, Vector, ? super Evaluator<? super Vector, ? extends Vector>> costFunction )
     {
         super( algorithm );
         this.setCostFunction( costFunction );
@@ -104,7 +103,7 @@ public abstract class AbstractMinimizerBasedParameterCostMinimizer
             (AbstractMinimizerBasedParameterCostMinimizer<ResultType,EvaluatorType>) super.clone();
         clone.setObjectToOptimize( ObjectUtil.cloneSafe( this.getObjectToOptimize() ) );
         clone.setResult( ObjectUtil.cloneSafe( this.getResult() ) );
-        clone.setCostFunction( ObjectUtil.cloneSafe( this.getCostFunction() ) );
+        clone.setCostFunction( ObjectUtil.cloneSmart( this.getCostFunction() ) );
         return clone;
     }
 
@@ -165,7 +164,7 @@ public abstract class AbstractMinimizerBasedParameterCostMinimizer
         return this.getResult();
     }
 
-    public SupervisedCostFunction<Vector,Vector> getCostFunction()
+    public SupervisedCostFunction<Vector, Vector, ? super Evaluator<? super Vector, ? extends Vector>> getCostFunction()
     {
         return this.costFunction;
     }
@@ -176,7 +175,7 @@ public abstract class AbstractMinimizerBasedParameterCostMinimizer
      * Cost function that maps the object to optimize onto a scalar cost
      */
     public void setCostFunction( 
-        SupervisedCostFunction<Vector,Vector> costFunction )
+        SupervisedCostFunction<Vector, Vector, ? super Evaluator<? super Vector, ? extends Vector>> costFunction )
     {
         this.costFunction = costFunction;
     }

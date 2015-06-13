@@ -36,9 +36,10 @@ import java.util.Random;
  *
  * @param <InputType> Input type
  * @param <TargetType> Target type
+ * @param <EvaluatedType> Evaluated type.
  * @author krdixon
  */
-public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
+public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType, EvaluatedType extends Evaluator<? super InputType, ? extends TargetType>>
     extends TestCase
 {
 
@@ -71,7 +72,7 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
      * Creates cost function
      * @return cost function
      */
-    public abstract AbstractSupervisedCostFunction<InputType,TargetType> createInstance();
+    public abstract AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> createInstance();
 
     /**
      * creates cost parameters
@@ -83,7 +84,7 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
      * create evaluator
      * @return evaluator
      */
-    public abstract Evaluator<? super InputType, ? extends TargetType> createEvaluator();
+    public abstract EvaluatedType createEvaluator();
 
     /**
      * Tests against known values.
@@ -133,7 +134,7 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
      * @return target estimate pairs
      */
     public ArrayList<TargetEstimatePair<TargetType, TargetType>> createTargetEstimatePairs(
-        AbstractSupervisedCostFunction<InputType,TargetType> costFunction,
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> costFunction,
         Evaluator<? super InputType, ? extends TargetType> f )
     {
 
@@ -158,7 +159,7 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
     public void testAbstractMethods()
     {
         System.out.println( "Abstract methods" );
-        AbstractSupervisedCostFunction<InputType,TargetType> instance =
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> instance =
             this.createInstance();
         assertNotNull( instance );
         assertNotNull( instance.getCostParameters() );
@@ -178,10 +179,10 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
     public void testClone()
     {
         System.out.println("clone");
-        AbstractSupervisedCostFunction<InputType,TargetType> instance =
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> instance =
             this.createInstance();
         instance.setCostParameters( this.createRandomCostParameters() );
-        AbstractSupervisedCostFunction<InputType,TargetType> clone =
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> clone =
             instance.clone();
         assertNotNull( clone );
         assertNotSame( instance, clone );
@@ -197,11 +198,11 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
         System.out.println("evaluatePerformance");
         Collection<? extends InputOutputPair<InputType,TargetType>> data =
             this.createRandomCostParameters();
-        AbstractSupervisedCostFunction<InputType,TargetType> instance =
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> instance =
             this.createInstance();
         instance.setCostParameters(data);
 
-        Evaluator<? super InputType, ? extends TargetType> f = this.createEvaluator();
+        EvaluatedType f = this.createEvaluator();
         ArrayList<TargetEstimatePair<TargetType, TargetType>> tedata =
             createTargetEstimatePairs(instance, f);
         assertEquals( instance.evaluate(f), instance.evaluatePerformance(tedata), TOLERANCE );
@@ -219,9 +220,8 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
     public void testEvaluate()
     {
         System.out.println("evaluate");
-        Evaluator<? super InputType, ? extends TargetType> evaluator =
-            this.createEvaluator();
-        AbstractSupervisedCostFunction<InputType,TargetType> instance =
+        EvaluatedType evaluator = this.createEvaluator();
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> instance =
             this.createInstance();
         instance.setCostParameters( this.createRandomCostParameters() );
         ArrayList<TargetEstimatePair<TargetType, TargetType>> tedata =
@@ -241,7 +241,7 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
     public void testGetCostParameters()
     {
         System.out.println("getCostParameters");
-        AbstractSupervisedCostFunction<InputType,TargetType> instance = this.createInstance();
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> instance = this.createInstance();
         instance.setCostParameters(this.createRandomCostParameters());
         assertNotNull( instance.getCostParameters() );
     }
@@ -254,7 +254,7 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
         System.out.println("setCostParameters");
         Collection<? extends InputOutputPair<? extends InputType, TargetType>> costParameters =
             this.createRandomCostParameters();
-        AbstractSupervisedCostFunction<InputType,TargetType> instance = this.createInstance();
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> instance = this.createInstance();
         instance.setCostParameters(costParameters);
         assertSame( costParameters, instance.getCostParameters() );
     }
@@ -265,9 +265,8 @@ public abstract class SupervisedCostFunctionTestHarness<InputType,TargetType>
     public void testSummarize()
     {
         System.out.println("summarize");
-        Evaluator<? super InputType, ? extends TargetType> evaluator =
-            this.createEvaluator();
-        AbstractSupervisedCostFunction<InputType,TargetType> instance =
+        EvaluatedType evaluator = this.createEvaluator();
+        AbstractSupervisedCostFunction<InputType,TargetType,EvaluatedType> instance =
             this.createInstance();
         instance.setCostParameters( this.createRandomCostParameters() );
         ArrayList<TargetEstimatePair<TargetType, TargetType>> tedata =

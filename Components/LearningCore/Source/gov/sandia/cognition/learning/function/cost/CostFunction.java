@@ -15,8 +15,8 @@
 package gov.sandia.cognition.learning.function.cost;
 
 import gov.sandia.cognition.annotation.CodeReview;
+import gov.sandia.cognition.math.ScalarFunction;
 import gov.sandia.cognition.util.CloneableSerializable;
-import gov.sandia.cognition.evaluator.Evaluator;
 
 /**
  * The CostFunction interface defines the interface to evaluate some object to
@@ -41,8 +41,7 @@ import gov.sandia.cognition.evaluator.Evaluator;
     comments="Interface looks fine."
 )
 public interface CostFunction<EvaluatedType, CostParametersType>
-    extends Evaluator<EvaluatedType, Double>,
-    CloneableSerializable
+    extends ScalarFunction<EvaluatedType>
 {
     /**
      * Computes the cost of the given target.
@@ -50,7 +49,18 @@ public interface CostFunction<EvaluatedType, CostParametersType>
      * @param target The object to evaluate.
      * @return The cost of the given object.
      */
+    @Override
     public Double evaluate(
+        EvaluatedType target);
+    
+    /**
+     * Computes the cost of the given target.
+     * 
+     * @param target The object to evaluate.
+     * @return The cost of the given object.
+     */
+    @Override
+    public double evaluateAsDouble(
         EvaluatedType target);
     
     /**
@@ -68,8 +78,5 @@ public interface CostFunction<EvaluatedType, CostParametersType>
      * @return The current parameters of the cost function.
      */
     public CostParametersType getCostParameters();
-    
-
-    public CostFunction<EvaluatedType,CostParametersType> clone();
     
 }

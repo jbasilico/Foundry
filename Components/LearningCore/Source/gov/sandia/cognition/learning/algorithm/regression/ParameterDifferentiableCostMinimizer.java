@@ -19,9 +19,9 @@ import gov.sandia.cognition.learning.algorithm.minimization.FunctionMinimizer;
 import gov.sandia.cognition.learning.algorithm.minimization.FunctionMinimizerBFGS;
 import gov.sandia.cognition.learning.algorithm.minimization.line.LineMinimizerBacktracking;
 import gov.sandia.cognition.learning.function.cost.DifferentiableCostFunction;
+import gov.sandia.cognition.math.AbstractScalarFunction;
 import gov.sandia.cognition.math.DifferentiableEvaluator;
 import gov.sandia.cognition.math.matrix.Vector;
-import gov.sandia.cognition.util.AbstractCloneableSerializable;
 import gov.sandia.cognition.util.ObjectUtil;
 
 /**
@@ -84,11 +84,12 @@ public class ParameterDifferentiableCostMinimizer
         return (ParameterDifferentiableCostMinimizer) super.clone();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ParameterCostEvaluatorDerivativeBased createInternalFunction()
     {
         return new ParameterCostEvaluatorDerivativeBased( 
-            this.getResult(),(DifferentiableCostFunction) this.getCostFunction() );
+            this.getResult(), (DifferentiableCostFunction<Vector, Vector, ? super GradientDescendable>) this.getCostFunction());
     }
     
     /**
@@ -97,7 +98,7 @@ public class ParameterDifferentiableCostMinimizer
      * a cost function.  Uses algebraic derivatives.
      */
     public static class ParameterCostEvaluatorDerivativeBased
-        extends AbstractCloneableSerializable
+        extends AbstractScalarFunction<Vector>
         implements DifferentiableEvaluator<Vector,Double,Vector>
     {
         
@@ -109,7 +110,7 @@ public class ParameterDifferentiableCostMinimizer
         /**
          * Cost function against which to evaluate the cost of the object.
          */
-        private DifferentiableCostFunction costFunction;
+        private DifferentiableCostFunction<Vector, Vector, ? super GradientDescendable> costFunction;
         
         /**
          * Creates a new instance of ParameterCostEvaluatorDerivativeBased
@@ -120,12 +121,13 @@ public class ParameterDifferentiableCostMinimizer
          */
         public ParameterCostEvaluatorDerivativeBased(
             GradientDescendable internalFunction,
-            DifferentiableCostFunction costFunction )
+            DifferentiableCostFunction<Vector, Vector, ? super GradientDescendable> costFunction )
         {
             this.internalFunction = internalFunction;
             this.costFunction = costFunction;
         }
 
+        @Override
         public Vector differentiate(
             Vector input )
         {
@@ -133,11 +135,12 @@ public class ParameterDifferentiableCostMinimizer
             return this.costFunction.computeParameterGradient( internalFunction );
         }
 
-        public Double evaluate(
+        @Override
+        public double evaluateAsDouble(
             Vector input )
         {
             this.internalFunction.convertFromVector( input );
-            return this.costFunction.evaluate( this.internalFunction );
+            return this.costFunction.computeCost(this.internalFunction);
         }
 
         @Override
@@ -145,7 +148,7 @@ public class ParameterDifferentiableCostMinimizer
         {
             ParameterCostEvaluatorDerivativeBased clone =
                 (ParameterCostEvaluatorDerivativeBased) super.clone();
-            clone.costFunction = ObjectUtil.cloneSafe( this.costFunction );
+            clone.costFunction = ObjectUtil.cloneSmart( this.costFunction );
             clone.internalFunction = ObjectUtil.cloneSafe( this.internalFunction );
             return clone;
         }

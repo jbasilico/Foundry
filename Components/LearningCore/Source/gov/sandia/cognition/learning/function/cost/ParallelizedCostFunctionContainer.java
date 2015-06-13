@@ -17,7 +17,6 @@ package gov.sandia.cognition.learning.function.cost;
 import gov.sandia.cognition.algorithm.ParallelAlgorithm;
 import gov.sandia.cognition.algorithm.ParallelUtil;
 import gov.sandia.cognition.evaluator.Evaluator;
-import gov.sandia.cognition.learning.algorithm.gradient.GradientDescendable;
 import gov.sandia.cognition.learning.data.InputOutputPair;
 import gov.sandia.cognition.learning.data.SequentialDataMultiPartitioner;
 import gov.sandia.cognition.learning.data.TargetEstimatePair;
@@ -35,27 +34,32 @@ import java.util.logging.Logger;
  * across multiple cores/processors to speed up computation.
  * @author Kevin R. Dixon
  * @since 2.1
+ * @param <InputType> The type of input for the evaluated function.
+ * @param <OutputType> The type of output for the evaluated function.
+ * @param <EvaluatedType> The type of evaluated function.
+ * @param <DifferentiableEvaluatedType> The type of evaluated function that
+ *      can be differentiated.
  */
-public class ParallelizedCostFunctionContainer
-    extends AbstractSupervisedCostFunction<Vector,Vector>
-    implements DifferentiableCostFunction,
-    ParallelAlgorithm
+public class ParallelizedCostFunctionContainer<InputType, OutputType, EvaluatedType extends Evaluator<? super InputType, ? extends OutputType>, DifferentiableEvaluatedType extends EvaluatedType>
+    extends AbstractSupervisedCostFunction<InputType, OutputType, EvaluatedType>
+    implements DifferentiableCostFunction<InputType, OutputType, DifferentiableEvaluatedType>,
+        ParallelAlgorithm
 {
     
     /**
      * Cost function to parallelize
      */
-    private ParallelizableCostFunction costFunction;
+    private ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction;
 
     /**
      * Collection of evaluation thread calls
      */
-    private transient ArrayList<Callable<Object>> evaluationComponents;
+    private transient ArrayList<SubCostEvaluate> evaluationComponents;
     
     /**
      * Collection of evaluation gradient calls
      */
-    private transient ArrayList<Callable<Object>> gradientComponents;
+    private transient ArrayList<SubCostGradient> gradientComponents;
     
     /**
      * Thread pool used to parallelize the computation
@@ -67,7 +71,7 @@ public class ParallelizedCostFunctionContainer
      */
     public ParallelizedCostFunctionContainer()
     {
-        this( (ParallelizableCostFunction) null );
+        this(null);
     }
     
     /**
@@ -76,7 +80,7 @@ public class ParallelizedCostFunctionContainer
      * Cost function to parallelize
      */
     public ParallelizedCostFunctionContainer(
-        ParallelizableCostFunction costFunction )
+        ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction )
     {
         this( costFunction, ParallelUtil.createThreadPool() );
     }
@@ -89,7 +93,7 @@ public class ParallelizedCostFunctionContainer
      * Cost function to parallelize
      */
     public ParallelizedCostFunctionContainer(
-        ParallelizableCostFunction costFunction,
+        ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction,
         ThreadPoolExecutor threadPool )
     {
         this.setCostFunction( costFunction );
@@ -97,11 +101,12 @@ public class ParallelizedCostFunctionContainer
     }       
     
     @Override
-    public ParallelizedCostFunctionContainer clone()
+    public ParallelizedCostFunctionContainer<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> clone()
     {
-        ParallelizedCostFunctionContainer clone =
-            (ParallelizedCostFunctionContainer) super.clone();
-        clone.setCostFunction( ObjectUtil.cloneSafe( this.getCostFunction() ) );
+        @SuppressWarnings("unchecked")
+        ParallelizedCostFunctionContainer<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> clone =
+            (ParallelizedCostFunctionContainer<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType>) super.clone();
+        clone.setCostFunction( ObjectUtil.cloneSmart( this.getCostFunction() ) );
         clone.setThreadPool(
             ParallelUtil.createThreadPool( this.getNumThreads() ) );
         return clone;
@@ -112,7 +117,7 @@ public class ParallelizedCostFunctionContainer
      * @return
      * Cost function to parallelize
      */
-    public ParallelizableCostFunction getCostFunction()
+    public ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> getCostFunction()
     {
         return this.costFunction;
     }
@@ -123,7 +128,7 @@ public class ParallelizedCostFunctionContainer
      * Cost function to parallelize
      */
     public void setCostFunction(
-        ParallelizableCostFunction costFunction )
+        ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction )
     {
         this.costFunction = costFunction;
         this.evaluationComponents = null;
@@ -136,15 +141,15 @@ public class ParallelizedCostFunctionContainer
     protected void createPartitions()
     {
         int numThreads = this.getNumThreads();
-        ArrayList<ArrayList<InputOutputPair<? extends Vector, Vector>>> partitions =
+        ArrayList<ArrayList<InputOutputPair<? extends InputType, OutputType>>> partitions =
             SequentialDataMultiPartitioner.create(
                 this.getCostParameters(), numThreads );
-        this.evaluationComponents = new ArrayList<Callable<Object>>( numThreads );
-        this.gradientComponents = new ArrayList<Callable<Object>>( numThreads );
+        this.evaluationComponents = new ArrayList<SubCostEvaluate>( numThreads );
+        this.gradientComponents = new ArrayList<SubCostGradient>( numThreads );
         for( int i = 0; i < numThreads; i++ )
         {
-            ParallelizableCostFunction subcost =
-                (ParallelizableCostFunction) this.getCostFunction().clone();
+            ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> subcost =
+                ObjectUtil.cloneSmart(this.getCostFunction());
             subcost.setCostParameters( partitions.get(i) );
             this.evaluationComponents.add( new SubCostEvaluate( subcost, null ) );
             this.gradientComponents.add( new SubCostGradient( subcost, null ) );
@@ -154,7 +159,7 @@ public class ParallelizedCostFunctionContainer
 
     @Override
     public void setCostParameters(
-        Collection<? extends InputOutputPair<? extends Vector, Vector>> costParameters )
+        Collection<? extends InputOutputPair<? extends InputType, OutputType>> costParameters )
     {
         super.setCostParameters( costParameters );
         this.evaluationComponents = null;
@@ -162,8 +167,8 @@ public class ParallelizedCostFunctionContainer
     }
     
     @Override
-    public Double evaluate(
-        Evaluator<? super Vector, ? extends Vector> evaluator )
+    public double evaluateAsDouble(
+        EvaluatedType evaluator )
     {
         
         if( this.evaluationComponents == null )
@@ -172,9 +177,9 @@ public class ParallelizedCostFunctionContainer
         }
         
         // Set the subtasks
-        for( Callable<Object> sce : this.evaluationComponents )
+        for( SubCostEvaluate sce : this.evaluationComponents )
         {
-            ((SubCostEvaluate) sce).evaluator = evaluator;
+            sce.evaluator = evaluator;
         }
         
         Collection<Object> partialResults = null;
@@ -191,17 +196,24 @@ public class ParallelizedCostFunctionContainer
         return this.getCostFunction().evaluateAmalgamate( partialResults );
         
     }
-    
-    
+        
     @Override
-    public Double evaluatePerformance(
-        Collection<? extends TargetEstimatePair<? extends Vector, ? extends Vector>> data )
+    public double evaluatePerformanceAsDouble(
+        Collection<? extends TargetEstimatePair<? extends OutputType, ? extends OutputType>> data )
     {
-        return this.getCostFunction().evaluatePerformance( data );
+        return this.getCostFunction().evaluatePerformanceAsDouble( data );
     }
 
+    @Override
+    public double computeCost(
+        final DifferentiableEvaluatedType function)
+    {
+        return this.evaluateAsDouble(function);
+    }
+    
+    @Override
     public Vector computeParameterGradient(
-        GradientDescendable function )
+        DifferentiableEvaluatedType function )
     {
         
         if (this.gradientComponents == null)
@@ -210,9 +222,9 @@ public class ParallelizedCostFunctionContainer
         }
 
         // Create the subtasks
-        for (Callable<Object> eval : this.gradientComponents)
+        for (SubCostGradient eval : this.gradientComponents)
         {
-            ((SubCostGradient) eval).evaluator = function;
+            eval.evaluator = function;
         }
 
         Collection<Object> results = null;
@@ -262,19 +274,19 @@ public class ParallelizedCostFunctionContainer
     /**
      * Callable task for the evaluate() method.
      */
-    protected static class SubCostEvaluate
+    protected class SubCostEvaluate
         implements Callable<Object>
     {
         
         /**
          * Parallel cost function
          */
-        private ParallelizableCostFunction costFunction;
+        private ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction;
         
         /**
          * Evaluator for which to compute the cost
          */
-        private Evaluator<? super Vector, ? extends Vector> evaluator;
+        private EvaluatedType evaluator;
         
         /**
          * Creates a new instance of SubCostEvaluate
@@ -284,8 +296,8 @@ public class ParallelizedCostFunctionContainer
          * Evaluator for which to compute the cost
          */
         public SubCostEvaluate(
-            ParallelizableCostFunction costFunction,
-            Evaluator<? super Vector, ? extends Vector> evaluator )
+            ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction,
+            EvaluatedType evaluator )
         {
             this.costFunction = costFunction;
             this.evaluator = evaluator;
@@ -301,19 +313,19 @@ public class ParallelizedCostFunctionContainer
     /**
      * Callable task for the computeGradient() method
      */
-    protected static class SubCostGradient
+    protected class SubCostGradient
         implements Callable<Object>
     {
         
         /**
          * Parallel cost function
          */
-        private ParallelizableCostFunction costFunction;
+        private ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction;
         
         /**
          * Function for which to compute the gradient
          */
-        private GradientDescendable evaluator;
+        private DifferentiableEvaluatedType evaluator;
         
         /**
          * Creates a new instance of SubCostGradient
@@ -323,8 +335,8 @@ public class ParallelizedCostFunctionContainer
          * Function for which to compute the gradient
          */
         public SubCostGradient(
-            ParallelizableCostFunction costFunction,
-            GradientDescendable evaluator )
+            ParallelizableCostFunction<InputType, OutputType, EvaluatedType, DifferentiableEvaluatedType> costFunction,
+            DifferentiableEvaluatedType evaluator )
         {
             this.costFunction = costFunction;
             this.evaluator = evaluator;

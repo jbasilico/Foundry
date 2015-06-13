@@ -29,12 +29,25 @@ import java.util.Collection;
  * 
  * @param <InputType> Inputs of the Evaluator, such as a Vector
  * @param <TargetType> Targets of the Evaluator, such a Double
+ * @param <EvaluatedType> Type of the evaluator to compute the cost for.
  * @author Kevin R. Dixon
  * @since 2.0
  */
-public interface SupervisedCostFunction<InputType, TargetType>
-    extends CostFunction<Evaluator<? super InputType, ? extends TargetType>, Collection<? extends InputOutputPair<? extends InputType, TargetType>>>,
+public interface SupervisedCostFunction<InputType, TargetType, EvaluatedType extends Evaluator<? super InputType, ? extends TargetType>>
+    extends CostFunction<EvaluatedType, Collection<? extends InputOutputPair<? extends InputType, TargetType>>>,
     Summarizer<TargetEstimatePair<? extends TargetType, ? extends TargetType>, Double>,
     SupervisedPerformanceEvaluator<InputType, TargetType, TargetType, Double>
 {
+    
+    /**
+     * Evaluate the performance of this cost function as a double from a
+     * given collection of target-estimate pairs.
+     * 
+     * @param   data
+     *      The collection of target-estimate pairs to evaluate.
+     * @return 
+     *      The cost computed from the target-estimate pairs
+     */
+    public abstract double evaluatePerformanceAsDouble(
+        final Collection<? extends TargetEstimatePair<? extends TargetType, ? extends TargetType>> data);
 }

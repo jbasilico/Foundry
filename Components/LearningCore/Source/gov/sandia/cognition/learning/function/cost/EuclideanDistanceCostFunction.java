@@ -18,7 +18,6 @@ import gov.sandia.cognition.annotation.CodeReview;
 import gov.sandia.cognition.learning.function.distance.EuclideanDistanceMetric;
 import gov.sandia.cognition.math.matrix.Vector;
 import gov.sandia.cognition.math.matrix.Vectorizable;
-import gov.sandia.cognition.util.AbstractCloneableSerializable;
 import gov.sandia.cognition.util.ObjectUtil;
 
 /**
@@ -36,8 +35,7 @@ import gov.sandia.cognition.util.ObjectUtil;
     comments="Switched usage for the goal from Vectorizable to just a Vector so it does not call convertToVector() over and over."
 )
 public class EuclideanDistanceCostFunction
-    extends AbstractCloneableSerializable
-    implements CostFunction<Vectorizable, Vectorizable>
+    extends AbstractCostFunction<Vectorizable, Vectorizable>
 {
     /** The goal of the cost function. */
     private Vector goal;
@@ -79,7 +77,8 @@ public class EuclideanDistanceCostFunction
      * @param target The target to evaluate.
      * @return The distance between the target and the goal.
      */
-    public Double evaluate(
+    @Override
+    public double evaluateAsDouble(
         Vectorizable target) 
     {
         return EuclideanDistanceMetric.INSTANCE.evaluate(

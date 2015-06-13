@@ -26,90 +26,116 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Partial implementation of SupervisedCostFunction
+ * Abstract class for {@link SupervisedCostFunction}. Defines the basic common
+ * implementation, like saving the cost parameters.
+ * 
  * @param <InputType> Input type of the dataset and Evaluator
  * @param <TargetType> Output type (labels) of the dataset and Evaluator
+ * @param <EvaluatedType> The type of evaluator to compute the cost for.
  * @author Kevin R. Dixon
  * @since 2.0
  */
-public abstract class AbstractSupervisedCostFunction<InputType, TargetType>
+public abstract class AbstractSupervisedCostFunction<InputType, TargetType, EvaluatedType extends Evaluator<? super InputType, ? extends TargetType>>
     extends AbstractSupervisedPerformanceEvaluator<InputType, TargetType, TargetType, Double>
-    implements SupervisedCostFunction<InputType, TargetType>
+    implements SupervisedCostFunction<InputType, TargetType, EvaluatedType>
 {
 
     /**
-     * Labeled dataset to use to evaluate the cost against
+     * Labeled dataset to use to evaluate the cost against.
      */
-    private Collection<? extends InputOutputPair<? extends InputType, TargetType>> costParameters;
+    protected Collection<? extends InputOutputPair<? extends InputType, TargetType>> costParameters;
 
     /** 
-     * Creates a new instance of AbstractSupervisedCostFunction 
+     * Creates a new {@link AbstractSupervisedCostFunction}. The cost parameters
+     * are initialized to null.
      */
     public AbstractSupervisedCostFunction()
     {
-        this.setCostParameters( null );
+        this(null);
     }
 
     /**
-     * Creates a new instance of AbstractSupervisedCostFunction 
+     * Creates a new {@link AbstractSupervisedCostFunction} with the given
+     * cost parameters.
+     * 
      * @param costParameters
-     * Labeled dataset to use to evaluate the cost against
+     *      Labeled dataset to use to evaluate the cost against.
      */
     public AbstractSupervisedCostFunction(
-        Collection<? extends InputOutputPair<? extends InputType, TargetType>> costParameters )
+        final Collection<? extends InputOutputPair<? extends InputType, TargetType>> costParameters)
     {
-        this.setCostParameters( costParameters );
+        super();
+        
+        this.setCostParameters(costParameters);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public AbstractSupervisedCostFunction<InputType, TargetType> clone()
+    public AbstractSupervisedCostFunction<InputType, TargetType, EvaluatedType> clone()
     {
-        AbstractSupervisedCostFunction<InputType, TargetType> clone =
-            (AbstractSupervisedCostFunction<InputType, TargetType>) super.clone();
+        final AbstractSupervisedCostFunction<InputType, TargetType, EvaluatedType> clone =
+            (AbstractSupervisedCostFunction<InputType, TargetType, EvaluatedType>) super.clone();
         clone.setCostParameters(
-            ObjectUtil.cloneSmartElementsAsArrayList(this.getCostParameters()) );
+            ObjectUtil.cloneSmartElementsAsArrayList(this.getCostParameters()));
         return clone;
     }
 
     @Override
-    public abstract Double evaluatePerformance(
-        Collection<? extends TargetEstimatePair<? extends TargetType, ? extends TargetType>> data );
-
-    public Double evaluate(
-        Evaluator<? super InputType, ? extends TargetType> evaluator )
+    public Double evaluatePerformance(
+        final Collection<? extends TargetEstimatePair<? extends TargetType, ? extends TargetType>> data)
     {
-        ArrayList<WeightedTargetEstimatePair<TargetType, TargetType>> targetEstimatePairs =
-            new ArrayList<WeightedTargetEstimatePair<TargetType, TargetType>>( this.getCostParameters().size() );
+        return this.evaluatePerformanceAsDouble(data);
+    }
+    
+    @Override
+    public abstract double evaluatePerformanceAsDouble(
+        final Collection<? extends TargetEstimatePair<? extends TargetType, ? extends TargetType>> data);
+    
+    @Override
+    public Double evaluate(
+        final EvaluatedType evaluator)
+    {
+        return this.evaluateAsDouble(evaluator);
+    }
+    
+    @Override
+    public double evaluateAsDouble(
+        final EvaluatedType evaluator)
+    {
+        final ArrayList<WeightedTargetEstimatePair<TargetType, TargetType>> targetEstimatePairs = 
+            new ArrayList<WeightedTargetEstimatePair<TargetType, TargetType>>(
+                this.getCostParameters().size());
 
-        for (InputOutputPair<? extends InputType, ? extends TargetType> io
+        for (final InputOutputPair<? extends InputType, ? extends TargetType> io
             : this.getCostParameters())
         {
-        	TargetType target = io.getOutput();
-            TargetType estimate = evaluator.evaluate(io.getInput());
+            final TargetType target = io.getOutput();
+            final TargetType estimate = evaluator.evaluate(io.getInput());
             targetEstimatePairs.add(DefaultWeightedTargetEstimatePair.create(
                 target, estimate, DatasetUtil.getWeight(io)));
         }
 
-        return this.evaluatePerformance( targetEstimatePairs );
+        return this.evaluatePerformanceAsDouble(targetEstimatePairs);
     }
 
+    @Override
+    public Double summarize(
+        final Collection<? extends TargetEstimatePair<? extends TargetType, ? extends TargetType>> data)
+    {
+        return this.evaluatePerformance(data);
+    }
+    
+    @Override
     public Collection<? extends InputOutputPair<? extends InputType, TargetType>> getCostParameters()
     {
         return this.costParameters;
     }
 
+    @Override
     public void setCostParameters(
-        Collection<? extends InputOutputPair<? extends InputType, TargetType>> costParameters )
+        Collection<? extends InputOutputPair<? extends InputType, TargetType>> costParameters)
     {
         this.costParameters = costParameters;
-    }
-
-    @Override
-    public Double summarize(
-        Collection<? extends TargetEstimatePair<? extends TargetType, ? extends TargetType>> data )
-    {
-        return this.evaluatePerformance(data);
     }
 
 }

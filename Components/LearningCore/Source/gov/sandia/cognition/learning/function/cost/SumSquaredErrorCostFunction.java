@@ -32,7 +32,7 @@ import java.util.Collection;
  * @since 2.1
  */
 public class SumSquaredErrorCostFunction 
-    extends AbstractParallelizableCostFunction
+    extends AbstractParallelizableCostFunction<Vector, Vector, Evaluator<? super Vector, ? extends Vector>, GradientDescendable>
 {
 
     /** 
@@ -103,7 +103,7 @@ public class SumSquaredErrorCostFunction
             return numerator / denominator;
         }
     }
-
+    
     public Object computeParameterGradientPartial(
         GradientDescendable function )
     {
@@ -161,7 +161,7 @@ public class SumSquaredErrorCostFunction
     
     
     @Override
-    public Double evaluatePerformance(
+    public double evaluatePerformanceAsDouble(
         Collection<? extends TargetEstimatePair<? extends Vector, ? extends Vector>> data )
     {
         double sumSquaredError = 0.0;

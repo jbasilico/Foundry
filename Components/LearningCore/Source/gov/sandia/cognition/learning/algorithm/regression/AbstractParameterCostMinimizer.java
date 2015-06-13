@@ -34,7 +34,7 @@ import java.util.Collection;
  * @since 2.1
  */
 public abstract class AbstractParameterCostMinimizer
-        <ResultType extends VectorizableVectorFunction,CostFunctionType extends SupervisedCostFunction<Vector,Vector>>
+        <ResultType extends VectorizableVectorFunction,CostFunctionType extends SupervisedCostFunction<Vector, Vector, ? super ResultType>>
     extends AbstractAnytimeSupervisedBatchLearner<Vector, Vector, ResultType>
     implements BatchCostMinimizationLearner<Collection<? extends InputOutputPair<? extends Vector, Vector>>,ResultType>,
     ParameterCostMinimizer<ResultType>

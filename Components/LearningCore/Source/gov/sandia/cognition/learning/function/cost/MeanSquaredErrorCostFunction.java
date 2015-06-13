@@ -15,6 +15,7 @@
 package gov.sandia.cognition.learning.function.cost;
 
 import gov.sandia.cognition.annotation.CodeReview;
+import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.learning.algorithm.gradient.GradientDescendable;
 import gov.sandia.cognition.learning.data.DatasetUtil;
 import gov.sandia.cognition.learning.data.InputOutputPair;
@@ -39,8 +40,8 @@ import java.util.Collection;
     comments="Minor documentaMtion changes."
 )
 public class MeanSquaredErrorCostFunction
-    extends AbstractSupervisedCostFunction<Vector, Vector>
-    implements DifferentiableCostFunction
+    extends AbstractSupervisedCostFunction<Vector, Vector, Evaluator<? super Vector, ? extends Vector>>
+    implements DifferentiableCostFunction<Vector, Vector, GradientDescendable>
 {
 
     /**
@@ -70,7 +71,7 @@ public class MeanSquaredErrorCostFunction
     }
 
     @Override
-    public Double evaluatePerformance(
+    public double evaluatePerformanceAsDouble(
         Collection<? extends TargetEstimatePair<? extends Vector, ? extends Vector>> data )
     {
 
@@ -99,6 +100,14 @@ public class MeanSquaredErrorCostFunction
 
     }
 
+    @Override
+    public double computeCost(
+        final GradientDescendable function)
+    {
+        return this.evaluateAsDouble(function);
+    }
+    
+    @Override
     public Vector computeParameterGradient(
         GradientDescendable function )
     {
@@ -108,7 +117,8 @@ public class MeanSquaredErrorCostFunction
 
         double denominator = 0.0;
 
-        for (InputOutputPair<? extends Vector, ? extends Vector> pair : this.getCostParameters())
+        for (InputOutputPair<? extends Vector, ? extends Vector> pair 
+            : this.getCostParameters())
         {
             Vector input = pair.getInput();
             Vector target = pair.getOutput();

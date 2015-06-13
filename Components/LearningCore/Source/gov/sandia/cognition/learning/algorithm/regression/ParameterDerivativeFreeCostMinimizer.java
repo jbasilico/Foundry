@@ -72,7 +72,7 @@ public class ParameterDerivativeFreeCostMinimizer
     public ParameterCostEvaluatorDerivativeFree createInternalFunction()
     {
         return new ParameterCostEvaluatorDerivativeFree(
-            this.getResult(), this.getCostFunction() );
+            this.getResult(), this.getCostFunction());
     }        
     
     /**
@@ -94,7 +94,7 @@ public class ParameterDerivativeFreeCostMinimizer
         /**
          * Cost function against which to evaluate the cost of the object.
          */
-        private SupervisedCostFunction<Vector,Vector> costFunction;
+        private SupervisedCostFunction<Vector, Vector, ? super Evaluator<? super Vector, ? extends Vector>> costFunction;
         
         /**
          * Creates a new instance of ParameterCostEvaluatorDerivativeFree
@@ -105,7 +105,7 @@ public class ParameterDerivativeFreeCostMinimizer
          */
         public ParameterCostEvaluatorDerivativeFree(
             VectorizableVectorFunction internalFunction,
-            SupervisedCostFunction<Vector,Vector> costFunction )
+            SupervisedCostFunction<Vector, Vector, ? super Evaluator<? super Vector, ? extends Vector>> costFunction )
         {
             this.internalFunction = internalFunction;
             this.costFunction = costFunction;
@@ -129,7 +129,7 @@ public class ParameterDerivativeFreeCostMinimizer
         {
             ParameterCostEvaluatorDerivativeFree clone =
                 (ParameterCostEvaluatorDerivativeFree) super.clone();
-            clone.costFunction = ObjectUtil.cloneSafe( this.costFunction );
+            clone.costFunction = ObjectUtil.cloneSmart( this.costFunction );
             clone.internalFunction =
                 ObjectUtil.cloneSafe( this.internalFunction );
             return clone;

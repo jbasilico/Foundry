@@ -15,6 +15,7 @@
 package gov.sandia.cognition.learning.algorithm.annealing;
 
 import gov.sandia.cognition.annotation.CodeReview;
+import gov.sandia.cognition.learning.function.cost.AbstractCostFunction;
 import gov.sandia.cognition.learning.function.cost.CostFunction;
 import gov.sandia.cognition.learning.function.cost.EuclideanDistanceCostFunction;
 import gov.sandia.cognition.math.matrix.Vectorizable;
@@ -597,8 +598,7 @@ public class SimulatedAnnealerTest
      * @since 1.0
      */
     private class DoubleCostFunction
-            extends AbstractCloneableSerializable
-            implements CostFunction<Double, Double>
+            extends AbstractCostFunction<Double, Double>
     {
         /** The goal of the search */
         private double goal;
@@ -613,12 +613,6 @@ public class SimulatedAnnealerTest
         {
             this.setGoal(goal);
         }
-
-        @Override
-        public DoubleCostFunction clone()
-        {
-            return (DoubleCostFunction) super.clone();
-        }
         
         /**
          * Computes the cost of the given target.
@@ -626,7 +620,7 @@ public class SimulatedAnnealerTest
          * @param target The double to evaluate.
          * @return The cost of the given double.
          */
-        public Double evaluate(
+        public double evaluateAsDouble(
                 Double target)
         {
             return ((this.getGoal() - target) * (this.getGoal() - target));

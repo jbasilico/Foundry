@@ -29,7 +29,7 @@ import java.util.Collection;
  * @param   <InputType> The input type to evaluate.
  * @param   <TargetType> The type of the ground-truth targets (the labels).
  * @param   <EstimateType> The type of estimate to evaluate.
- * @param   <ResultType> The output type of the performance evalautor.
+ * @param   <ResultType> The output type of the performance evaluator.
  * @author  Justin Basilico
  * @since   2.0
  */

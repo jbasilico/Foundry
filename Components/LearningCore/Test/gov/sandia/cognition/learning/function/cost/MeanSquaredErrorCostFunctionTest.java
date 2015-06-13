@@ -15,6 +15,7 @@
 package gov.sandia.cognition.learning.function.cost;
 
 import gov.sandia.cognition.annotation.CodeReview;
+import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.learning.data.DatasetUtil;
 import gov.sandia.cognition.learning.function.vector.MultivariateDiscriminant;
 import gov.sandia.cognition.math.RingAccumulator;
@@ -40,7 +41,7 @@ import java.util.Collection;
     comments="Test class looks fine."
 )
 public class MeanSquaredErrorCostFunctionTest 
-    extends SupervisedCostFunctionTestHarness<Vector,Vector>
+    extends SupervisedCostFunctionTestHarness<Vector,Vector,Evaluator<? super Vector, ? extends Vector>>
 {
 
     /**

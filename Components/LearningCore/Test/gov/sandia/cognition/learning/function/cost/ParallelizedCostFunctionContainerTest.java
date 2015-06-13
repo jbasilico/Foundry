@@ -31,6 +31,8 @@ import junit.framework.TestCase;
  * JUnit tests for class ParallelizedCostFunctionContainerTest
  * @author Kevin R. Dixon
  */
+// TEMP
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ParallelizedCostFunctionContainerTest
     extends TestCase
 {

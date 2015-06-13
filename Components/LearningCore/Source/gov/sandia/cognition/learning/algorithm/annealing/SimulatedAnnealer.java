@@ -212,7 +212,7 @@ public class SimulatedAnnealer<CostParametersType, AnnealedType>
         final SimulatedAnnealer<CostParametersType, AnnealedType> result =
             (SimulatedAnnealer<CostParametersType, AnnealedType>) super.clone();
         
-        result.cost = ObjectUtil.cloneSafe(this.cost);
+        result.cost = ObjectUtil.cloneSmart(this.cost);
         result.perturber = ObjectUtil.cloneSmart(this.perturber);
         result.random = ObjectUtil.deepCopy(this.random);
         

@@ -168,7 +168,7 @@ public class DistributionParameterEstimator<DataType, DistributionType extends C
             @SuppressWarnings("unchecked")
             DistributionWrapper clone = (DistributionWrapper) super.clone();
             clone.distribution = ObjectUtil.cloneSafe( this.distribution );
-            clone.costFunction = ObjectUtil.cloneSafe( this.costFunction );
+            clone.costFunction = ObjectUtil.cloneSmart( this.costFunction );
             return clone;
         }
 

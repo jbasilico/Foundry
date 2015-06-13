@@ -15,7 +15,9 @@
 
 package gov.sandia.cognition.learning.performance;
 
+import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.learning.data.TargetEstimatePair;
+import gov.sandia.cognition.learning.function.cost.AbstractSupervisedCostFunction;
 import java.util.Collection;
 
 /**
@@ -30,7 +32,7 @@ import java.util.Collection;
  * @since   2.0
  */
 public class MeanAbsoluteErrorEvaluator<InputType>
-    extends AbstractSupervisedPerformanceEvaluator<InputType, Double, Double, Double>
+    extends AbstractSupervisedCostFunction<InputType, Double, Evaluator<? super InputType, ? extends Double>>
 {
 
     /**
@@ -40,14 +42,9 @@ public class MeanAbsoluteErrorEvaluator<InputType>
     {
         super();
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param  data {@inheritDoc}
-     * @return {@inheritDoc}
-     */
-    public Double evaluatePerformance(
+    
+    @Override
+    public double evaluatePerformanceAsDouble(
         final Collection<? extends TargetEstimatePair<? extends Double, ? extends Double>> data )
     {
         return MeanAbsoluteErrorEvaluator.compute( data );

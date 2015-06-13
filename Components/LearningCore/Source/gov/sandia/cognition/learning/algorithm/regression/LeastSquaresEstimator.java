@@ -23,7 +23,7 @@ import gov.sandia.cognition.learning.function.cost.SumSquaredErrorCostFunction;
  * @since 2.1
  */
 public abstract class LeastSquaresEstimator 
-    extends AbstractParameterCostMinimizer<GradientDescendable,SumSquaredErrorCostFunction>
+    extends AbstractParameterCostMinimizer<GradientDescendable, SumSquaredErrorCostFunction>
 {
     
     /** 

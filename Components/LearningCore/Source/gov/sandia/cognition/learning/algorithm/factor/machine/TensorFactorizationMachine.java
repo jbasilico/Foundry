@@ -191,19 +191,19 @@ public class TensorFactorizationMachine
             // We loop over k to do the performance improvement trick that
             // allows O(kd) computation instead of O(kd^l).
             final int factorCount = factors.getNumRows();
-            final int[][] partitions = PARTITIONS_PER_WAY[way];
-            final int partitionCount = partitions.length;
-            final int[] termCoefficients = COEFFICIENTS_PER_WAY[way];
             
             // We need to compute the total sum for the way. In doing so, we
             // also will need to know the sums of the powers of each active
             // feature in each factor, which is what the array is used for.
             double waySum = 0.0;
             final double[] sums = new double[way + 1];
+            final double[] partial = new double[way + 1];
             for (int k = 0; k < factorCount; k++)
             {
                 // Clear the sums of the terms to each power.
                 Arrays.fill(sums, 0.0);
+                Arrays.fill(partial, 0.0);
+                partial[0] = 1.0;
                 for (final VectorEntry entry : input)
                 {
                     final double product = entry.getValue()
@@ -217,24 +217,21 @@ public class TensorFactorizationMachine
                         accumulator *= product;
                     }
                 }
-                
-                // Compute each term in the expansion for this way by using
-                // the partitions to figure out the powers of elements to use.
-                for (int i = 0; i < partitionCount; i++)
+               
+                for (int i = 1; i <= way; i++)
                 {
-                    // Compute the value of this term using the sums of each
-                    // power and then multiplying them using the defined
-                    // partition.
-                    double term = 1.0;
-                    for (final int power : partitions[i])
+                    double partialSum = 0.0;
+                    int sign = 1;
+                    for (int j = 1; j <= i; j++)
                     {
-                        term *= sums[power];
+                        partialSum += sums[j] * partial[i - j] 
+                            * sign * FACTORIAL_PER_WAY[i - 1] / FACTORIAL_PER_WAY[i - j];
+                        sign *= -1;
                     }
-                    
-                    // Now add to the total sum using the appropriate 
-                    // coefficient.
-                    waySum += termCoefficients[i] * term;
+//                    partialSum += sign * sums[i] * FACTORIAL_PER_WAY[i - 1];
+                    partial[i] = partialSum;
                 }
+                waySum += partial[way];
             }
             
             // Update the result with the total value for this way.

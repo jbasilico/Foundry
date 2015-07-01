@@ -47,56 +47,6 @@ public class TensorFactorizationMachineTest
     }
     
     /**
-     * Test of constants of class TensorFactorizationMachine.
-     */
-    @Test
-    public void testConstants()
-    {
-        int ways = 10 + 1;
-        assertEquals(ways, TensorFactorizationMachine.PARTITIONS_PER_WAY.length);
-        assertEquals(ways, TensorFactorizationMachine.COEFFICIENTS_PER_WAY.length);
-        assertEquals(ways, TensorFactorizationMachine.FACTORIAL_PER_WAY.length);
-        
-        assertEquals(0, TensorFactorizationMachine.PARTITIONS_PER_WAY[0].length);
-        assertEquals(0, TensorFactorizationMachine.COEFFICIENTS_PER_WAY[0].length);
-        assertEquals(1, TensorFactorizationMachine.FACTORIAL_PER_WAY[0]);
-        
-        int factorial = 1;
-        for (int way = 1; way < ways; way++)
-        {
-            factorial *= way;
-            
-            int[][] partitions = TensorFactorizationMachine.PARTITIONS_PER_WAY[way];
-            int[] coefficients = TensorFactorizationMachine.COEFFICIENTS_PER_WAY[way];
-            int termCount = partitions.length;
-            assertEquals(termCount, coefficients.length);
-            
-            for (int[] partition : partitions)
-            {
-                int sum = 0;
-                for (int part : partition)
-                {
-                    assertTrue(part > 0);
-                    sum += part;
-                }
-                assertEquals(way, sum);
-            }
-            
-            int coefficientSum = 0;
-            for (int coefficient : coefficients)
-            {
-                coefficientSum += coefficient;
-            }
-            if (way > 1)
-            {
-                assertEquals(0, coefficientSum);
-            }
-            
-            assertEquals(factorial, TensorFactorizationMachine.FACTORIAL_PER_WAY[way]);
-        }
-    }
-    
-    /**
      * Test of constructors, of class TensorFactorizationMachine.
      */
     @Test
@@ -1131,22 +1081,6 @@ public class TensorFactorizationMachineTest
         }
         
         fail("Not yet implemented");
-    }
-    
-    @Test
-    public void testStatics()
-    {
-        for (int way = 1; way < TensorFactorizationMachine.COEFFICIENTS_PER_WAY.length; way++)
-        {
-            System.out.println("Way: " + way);
-            
-            int terms = TensorFactorizationMachine.COEFFICIENTS_PER_WAY[way].length;
-            for (int i = 0; i < terms; i++)
-            {
-                System.out.println(TensorFactorizationMachine.COEFFICIENTS_PER_WAY[way][i] + "\t"
-                    + Arrays.toString(TensorFactorizationMachine.PARTITIONS_PER_WAY[way][i]));
-            }
-        }
     }
     
 }

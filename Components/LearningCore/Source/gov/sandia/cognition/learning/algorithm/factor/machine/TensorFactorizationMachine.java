@@ -174,6 +174,15 @@ public class TensorFactorizationMachine
         }
         // else - No weights.
         
+        
+        // We need to compute the total sum for the way. In doing so, we
+        // also will need to know the sums of the powers of each active
+        // feature in each factor, which is what the array is used for.
+        final int maxWay = this.getMaxWay();
+        final double[] sums = new double[maxWay + 1];
+        final double[] parts = new double[maxWay + 1];
+        parts[0] = 1.0;
+        
         // Go through all the factors for each way.
         int way = 1;
         for (final Matrix factors : this.factorsPerWay)
@@ -193,9 +202,6 @@ public class TensorFactorizationMachine
             // also will need to know the sums of the powers of each active
             // feature in each factor, which is what the array is used for.
             double waySum = 0.0;
-            final double[] sums = new double[way + 1];
-            final double[] parts = new double[way + 1];
-            parts[0] = 1.0;
             for (int k = 0; k < factorCount; k++)
             {
                 // Clear the sums of the terms to each power.
@@ -266,6 +272,19 @@ public class TensorFactorizationMachine
             offset += d;
         }
 
+        // We need to compute the total sum for the way. In doing so, we
+        // also will need to know the sums of the powers of each active
+        // feature in each factor, which is what the array is used for.
+        final int maxWay = this.getMaxWay();
+        final double[] sums = new double[maxWay + 1];
+        final double[] parts = new double[maxWay + 1];
+        parts[0] = 1.0;
+
+        final double[] partialSums = new double[maxWay + 1];
+        final double[] partials = new double[maxWay + 1];
+        // partials[0] = 0.0 since parts[0] is a constant, so its derivative
+        // is zero.
+        
         // Go through all the factors for each way.
         int way = 1;
         for (final Matrix factors : this.factorsPerWay)
@@ -280,18 +299,6 @@ public class TensorFactorizationMachine
             // We loop over k to do the performance improvement trick that
             // allows O(kd) computation instead of O(kd^l).
             final int factorCount = factors.getNumRows();
-            
-            // We need to compute the total sum for the way. In doing so, we
-            // also will need to know the sums of the powers of each active
-            // feature in each factor, which is what the array is used for.
-            final double[] sums = new double[way + 1];
-            final double[] parts = new double[way + 1];
-            parts[0] = 1.0;
-            
-            final double[] partialSums = new double[way + 1];
-            final double[] partials = new double[way + 1];
-            // partials[0] = 0.0 since parts[0] is a constant, so its derivative
-            // is zero.
             
             for (int k = 0; k < factorCount; k++)
             {

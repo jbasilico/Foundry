@@ -242,9 +242,6 @@ public class TensorFactorizationMachineTest
             assertEquals(expected, instance.evaluateAsDouble(x), epsilon);
             assertEquals(expected, b + w.dotProduct(x) + computePairwise(x, v, 4), epsilon);
         }
-        
-        
-        fail("The test case is a prototype.");
     }
     
     @Test
@@ -255,7 +252,7 @@ public class TensorFactorizationMachineTest
         int n = 20;
         for (int way = 2; way <= 10; way++)
         {
-            System.out.println("Computing coefficients for way " + way);
+            System.out.println("Evaluating as double for way " + way);
             Matrix v = mf.createUniformRandom(k, d, -1, 1, random);
             TensorFactorizationMachine instance = new TensorFactorizationMachine();
             instance.setFactorsPerWay(new Matrix[way - 1]);
@@ -269,92 +266,6 @@ public class TensorFactorizationMachineTest
         }
     }
     
-    @Test
-    public void testComputeCoefficients()
-    {
-
-        for (int way = 5; way <= 10; way++)
-        {
-            System.out.println("Computing coefficients for way " + way);
-            int k = way + 2; // 1 + this.random.nextInt(d - 1);
-            int d = k + 2; //3 + this.random.nextInt(10);
-            int n = 2 * way;
-
-
-            Matrix v = MatrixFactory.getDenseDefault().createUniformRandom(k, d, -1, 1, random);
-            System.out.println("Solving for way = " + way);
-
-
-            int[][] partitions = createPartitions(way);
-            Matrix coeffs = MatrixFactory.getDenseDefault().createMatrix(n * k, partitions.length);
-            Vector targets = VectorFactory.getDenseDefault().createVector(n * k);
-            for (int example = 0; example < n; example++)
-            {
-                Vector x = VectorFactory.getDefault().createUniformRandom(d, -10, 10, random);
-                System.out.println("Expected: " + computePairwise(x, v, way));
-                for (int factor = 0; factor < k; factor++)
-                {
-                    double[] powers = new double[way + 1];
-                    Vector vf = v.getRow(factor);
-                    for (int i = 0; i < d; i++)
-                    {
-                        double value = x.get(i) * vf.get(i);
-
-                        double product = 1.0;
-                        for (int j = 1; j <= way; j++)
-                        {
-                            product *= value;
-                            powers[j] += product;
-                        }
-                    }
-
-                    double expected = computePairwise(x, MatrixFactory.getDenseDefault().copyRowVectors(vf), way);
-
-                    double[] features = new double[partitions.length];
-                    for (int i = 0; i < partitions.length; i++)
-                    {
-                        int[] partition = partitions[i];
-                        double value = 1.0;
-                        for (int part : partition)
-                        {
-                            value *= powers[part];
-                        }
-                        features[i] = value;
-                    }
-
-                    coeffs.setRow(k * example + factor, VectorFactory.getDenseDefault().copyValues(features));
-                    targets.set(k * example + factor, expected);
-                    System.out.println("f: " + factor + ": " + Arrays.toString(features) + " -> " + expected);
-                }
-            }
-
-            int factorial = 1;
-            for (int i = 2; i <= way; i++)
-            {
-                factorial *= i;
-            }
-
-            System.out.println("All : " + coeffs.sumOfRows() + " -> " + targets.sum());
-
-            Vector solved = coeffs.solve(targets);
-            System.out.println(solved);
-            double first = solved.get(0);
-            for (int i = 0; i < partitions.length; i++)
-            {
-                System.out.printf("%d: %.1f", i, solved.get(i) / first);
-                System.out.println(" " + Arrays.toString(partitions[i]));
-            }
-            for (int i = 0; i < partitions.length; i++)
-            {
-                System.out.printf("%.1f, ", solved.get(i) / first);
-            }
-            System.out.println();
-            System.out.println(solved.scale(factorial));
-            System.out.println(coeffs.times(solved));
-            System.out.println(targets.minus(coeffs.times(solved)).norm2());
-        }
-    }
-
     /**
      * Test of computeParameterGradient method, of class TensorFactorizationMachine.
      */
@@ -858,56 +769,6 @@ public class TensorFactorizationMachineTest
         assertSame(factorsPerWay, instance.getFactorsPerWay());
     }
     
-    
-    /**
-     * Test of computeDiagonalCoefficients method, of class TensorFactorizationMachine.
-     */
-    @Test
-    public void testComputeDiagonalCoefficients()
-    {
-        double[][] result = computeDiagonalCoefficients(5);
-        
-        for (int i = 0; i < result.length; i++)
-        {
-            final double[] coefficients = result[i];
-            System.out.print("" + i + ": ");
-            for (double value : coefficients)
-            {
-                System.out.print(" " + value);
-            }
-            System.out.println();
-        }
-        fail("The test case is a prototype.");
-    }
-    
-    // TODO: This was old code when the number of expected terms was the number of ways. Not currently used.
-    protected static double[][] computeDiagonalCoefficients(
-        final int maxWay)
-    {
-        double[][] coefficients = new double[maxWay + 1][];
-        
-        for (int i = 0; i <= maxWay; i++)
-        {
-            coefficients[i] = new double[i + 1];
-        }
-        
-        coefficients[0][0] = 0;
-        coefficients[1][0] = 0;
-        coefficients[1][1] = 1;
-        
-        for (int i = 2; i <= maxWay; i++)
-        {
-            coefficients[i][0] = 0;
-            coefficients[i][i] = 1;
-            for (int j = 1; j < i; j++)
-            {
-                coefficients[i][j] = coefficients[i - 1][j - 1] - (i - 1) * coefficients[i - 1][j];
-            }
-        }
-        
-        return coefficients;
-    }
-    
     public double computePairwise(
         final Vector input,
         final Matrix factors,
@@ -1017,70 +878,6 @@ public class TensorFactorizationMachineTest
             }
             return result;
         }
-    }
-    
-// TODO: Make this a utility function somewhere.
-    public static int[][] createPartitions(
-        final int n)
-    {
-        ArgumentChecker.assertIsPositive("n", n);
-// TEMP: Code from web... refactor.        
-        final LinkedList<int[]> partitions = new LinkedList<>();
-        final int[] a = new int[n + 1];
-        a[1] = n;
-        
-        int k = 1;
-        while (k != 0)
-        {
-            final int x = a[k - 1] + 1;
-            int y = a[k] - 1;
-            k -= 1;
-            
-            while (x <= y)
-            {
-                a[k] = x;
-                y -= x;
-                k += 1;
-            }
-            a[k] = x + y;
-            
-            final int[] part = Arrays.copyOfRange(a, 0, k + 1);
-            partitions.add(part);
-        }
-        
-        return partitions.toArray(new int[partitions.size()][]);
-    }
-    
-    @Test
-    public void testCreatePartitions()
-    {
-        for (int i = 1; i <= 10; i++)
-        {
-            System.out.println("Partitions of " + i);
-            int[][] result = createPartitions(i);
-            System.out.println("There are " + result.length + " partitions of " + i);
-            for (int[] part : result)
-            {
-                System.out.print("{");
-                boolean first = true;
-                for (int x : part)
-                {
-                    if (!first)
-                    {
-                        System.out.print(", ");
-                    }
-                    else
-                    {
-                        first = false;
-                    }
-                    System.out.print(x);
-                }
-                System.out.print("}, ");
-            }
-            System.out.println();
-        }
-        
-        fail("Not yet implemented");
     }
     
 }

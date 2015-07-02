@@ -213,10 +213,11 @@ public class TensorFactorizationMachine
                     
                     // Fill in all the powers.
                     double accumulator = product;
-                    for (int i = 1; i <= way; i++)
+                    sums[1] += accumulator;
+                    for (int i = 2; i <= way; i++)
                     {
-                        sums[i] += accumulator;
                         accumulator *= product;
+                        sums[i] += accumulator;
                     }
                 }
                
@@ -313,10 +314,11 @@ public class TensorFactorizationMachine
                     
                     // Fill in all the powers.
                     double accumulator = product;
-                    for (int i = 1; i <= way; i++)
+                    sums[1] += accumulator;
+                    for (int i = 2; i <= way; i++)
                     {
-                        sums[i] += accumulator;
                         accumulator *= product;
+                        sums[i] += accumulator;
                     }
                 }
 

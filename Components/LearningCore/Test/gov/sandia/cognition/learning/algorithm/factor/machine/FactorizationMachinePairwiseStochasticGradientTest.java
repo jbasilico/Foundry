@@ -14,6 +14,7 @@ import gov.sandia.cognition.algorithm.event.AbstractIterativeAlgorithmListener;
 import gov.sandia.cognition.collection.DefaultMultiCollection;
 import gov.sandia.cognition.learning.data.DefaultInputOutputPair;
 import gov.sandia.cognition.learning.data.InputOutputPair;
+import gov.sandia.cognition.learning.function.scalar.SigmoidFunction;
 import gov.sandia.cognition.learning.performance.MeanSquaredErrorEvaluator;
 import gov.sandia.cognition.math.matrix.MatrixFactory;
 import gov.sandia.cognition.math.matrix.Vector;
@@ -233,8 +234,8 @@ public class FactorizationMachinePairwiseStochasticGradientTest
         int trainSize = n;
         int testSize = n;
         int totalSize = trainSize + testSize;
-        List<List<InputOutputPair<Vector, Double>>> trainData = new ArrayList<>(trainSize);
-        List<List<InputOutputPair<Vector, Double>>> testData = new ArrayList<>(testSize);
+        final List<List<InputOutputPair<Vector, Double>>> trainData = new ArrayList<>(trainSize);
+        final List<List<InputOutputPair<Vector, Double>>> testData = new ArrayList<>(testSize);
         
         for (int i = 0; i < totalSize; i++)
         {
@@ -360,8 +361,8 @@ public class FactorizationMachinePairwiseStochasticGradientTest
         int trainSize = n;
         int testSize = n;
         int totalSize = trainSize + testSize;
-        List<List<InputOutputPair<Vector, Double>>> trainData = new ArrayList<>(trainSize);
-        List<List<InputOutputPair<Vector, Double>>> testData = new ArrayList<>(testSize);
+        final List<List<InputOutputPair<Vector, Double>>> trainData = new ArrayList<>(trainSize);
+        final List<List<InputOutputPair<Vector, Double>>> testData = new ArrayList<>(testSize);
         
         for (int i = 0; i < totalSize; i++)
         {
@@ -440,6 +441,162 @@ public class FactorizationMachinePairwiseStochasticGradientTest
         System.out.println("FCP: " + fcp);
         assertTrue(fcp >= 0.95);
 
+    }
+    
+    /*
+    @Test
+    public void testLinearGradientFiniteDifferencesInput()
+    {
+        System.out.println("testLinearGradientFiniteDifferences");
+        int d = 5;
+        FactorizationMachinePairwiseStochasticGradient instance =
+            new FactorizationMachinePairwiseStochasticGradient();
+        instance.setFactorCount(0);
+        instance.setSeedScale(0.2);
+        instance.setBiasRegularization(0.0);
+        instance.setWeightRegularization(0.1);
+        instance.setFactorRegularization(0);
+        instance.setLearningRate(0.1);
+        instance.setMaxIterations(100);
+        instance.setRandom(random);
+        
+        VectorFactory<?> vectorFactory = VectorFactory.getDenseDefault();
+        
+        int checkCount = 100;
+        for (int i = 0; i < checkCount; i++)
+        {
+            System.out.println(i);
+            FactorizationMachine m = new FactorizationMachine(d, 0);
+            m.setWeights(vectorFactory.createUniformRandom(
+                d, -10.0, 10.0, this.random));
+            instance.result = m;
+
+            Vector positive = vectorFactory.createUniformRandom(
+                d, -10.0, 10.0, this.random);
+            Vector negative = vectorFactory.createUniformRandom(
+                d, -10.0, 10.0, this.random);
+
+            FactorizationMachine before = m.clone();
+
+            double objectiveBefore = -Math.log(SigmoidFunction.logistic(
+                before.evaluateAsDouble(positive) - before.evaluateAsDouble(negative)))
+                + 0.5 * instance.getWeightRegularization() * before.getWeights().norm2Squared();
+            instance.update(positive, negative);
+            FactorizationMachine after = instance.getResult().clone();
+            double objectiveAfter = -Math.log(SigmoidFunction.logistic(
+                after.evaluateAsDouble(positive) - after.evaluateAsDouble(negative)))
+                + 0.5 * instance.getWeightRegularization() * after.getWeights().norm2Squared();
+            Vector gradient = before.weights.minus(after.weights);
+            System.out.println("Objective before: " + objectiveBefore);
+            System.out.println("Objective after: " + objectiveAfter);
+            System.out.println("Gradient magnitude: " + gradient.norm2Squared());
+
+            Vector perturbedPositive = positive.clone();
+            int index = random.nextInt(d);
+            double offset = 1e-8;
+            perturbedPositive.increment(index, offset);
+            double objectivePurturbed = -Math.log(SigmoidFunction.logistic(
+                before.evaluateAsDouble(perturbedPositive) - before.evaluateAsDouble(negative)))
+                + 0.5 * instance.getWeightRegularization() * before.getWeights().norm2Squared();
+
+            double finiteDifference = (objectiveBefore + offset * gradient.get(index));
+            System.out.println("G: " + gradient.get(index));
+            System.out.println("OP: " + objectivePurturbed);
+            System.out.println("OO + G: " + finiteDifference);
+            System.out.println("Delta: " + (objectivePurturbed - finiteDifference));
+            double delta = objectivePurturbed - finiteDifference;
+            
+            double gradientFiniteDifference = (objectivePurturbed - objectiveBefore) / offset;
+            System.out.println("Gradient FD: " + gradientFiniteDifference);
+            System.out.println("Ratio: " + (1 - gradient.get(index) / gradientFiniteDifference));
+            assertTrue(Math.abs(delta) < 1e-6);
+        }
+        
+        fail("Not yet implemented.");
+    }
+    */
+    
+    @Test
+    public void testLinearGradientFiniteDifferences()
+    {
+        System.out.println("testLinearGradientFiniteDifferences");
+        int d = 5;
+        FactorizationMachinePairwiseStochasticGradient instance =
+            new FactorizationMachinePairwiseStochasticGradient();
+        instance.setFactorCount(0);
+        instance.setSeedScale(0.2);
+        instance.setBiasRegularization(0.0);
+        instance.setWeightRegularization(0.0);
+        instance.setFactorRegularization(0);
+        instance.setLearningRate(1);
+        instance.setMaxIterations(100);
+        instance.setRandom(random);
+        
+        VectorFactory<?> vectorFactory = VectorFactory.getDenseDefault();
+        
+        int checkCount = 100;
+        for (int i = 0; i < checkCount; i++)
+        {
+            System.out.println(i);
+            FactorizationMachine m = new FactorizationMachine(d, 0);
+            m.setWeights(vectorFactory.createUniformRandom(
+                d, -10.0, 10.0, this.random));
+            instance.result = m;
+
+            Vector positive = vectorFactory.createUniformRandom(
+                d, -10.0, 10.0, this.random);
+            Vector negative = vectorFactory.createUniformRandom(
+                d, -10.0, 10.0, this.random);
+
+            FactorizationMachine before = m.clone();
+
+            double objectiveBefore = objectiveSingle(instance, before, 
+                positive, negative);
+            instance.update(positive, negative);
+            FactorizationMachine after = instance.getResult().clone();
+            double objectiveAfter = objectiveSingle(instance, after, 
+                positive, negative);
+            Vector gradient = before.weights.minus(after.weights).scale(
+                1.0 / instance.learningRate);
+            System.out.println("Objective before: " + objectiveBefore);
+            System.out.println("Objective after: " + objectiveAfter);
+            System.out.println("Gradient magnitude: " + gradient.norm2Squared());
+
+            FactorizationMachine purturbed = before.clone();
+            int index = random.nextInt(d);
+            double offset = 1e-8;
+            purturbed.getWeights().increment(index, offset);
+            double objectivePurturbed = objectiveSingle(instance, purturbed, 
+                positive, negative);
+
+            double finiteDifference = (objectiveBefore + offset * gradient.get(index));
+            System.out.println("G: " + gradient.get(index));
+            System.out.println("OP: " + objectivePurturbed);
+            System.out.println("OO + G: " + finiteDifference);
+            System.out.println("Delta: " + (objectivePurturbed - finiteDifference));
+            double delta = objectivePurturbed - finiteDifference;
+            
+            double gradientFiniteDifference = (objectivePurturbed - objectiveBefore) / offset;
+            double ratio = (1 - gradient.get(index) / gradientFiniteDifference);
+            System.out.println("Gradient FD: " + gradientFiniteDifference);
+            System.out.println("Ratio: " + ratio);
+            assertTrue(Math.abs(ratio) < 0.01);
+        }
+        
+        fail("Not yet implemented.");
+    }
+    
+    public static double objectiveSingle(
+        final FactorizationMachinePairwiseStochasticGradient instance,
+        final FactorizationMachine fm,
+        final Vector positive,
+        final Vector negative)
+    {
+        return -Math.log(SigmoidFunction.logistic(
+                fm.evaluateAsDouble(positive) - fm.evaluateAsDouble(negative)))
+                + 0.5 * (instance.getWeightRegularization() * fm.getWeights().norm2Squared()
+                    + instance.factorRegularization 
+                    * fm.getFactors().normFrobeniusSquared());
     }
 
     /**

@@ -208,6 +208,12 @@ public class FactorizationMachineStochasticGradientTest
             assertTrue(exceptionThrown);
         }
     }
+    
+    protected FactorizationMachineStochasticGradient createInstance()
+    {
+        return new FactorizationMachineStochasticGradient();
+    }
+    
 
     /**
      * Test of step method, of class FactorizationMachineStochasticGradient.
@@ -249,7 +255,7 @@ public class FactorizationMachineStochasticGradientTest
         }
         
         FactorizationMachineStochasticGradient instance =
-            new FactorizationMachineStochasticGradient();
+            this.createInstance();
         instance.setFactorCount(k);
         instance.setSeedScale(0.2);
         instance.setBiasRegularization(0.0);

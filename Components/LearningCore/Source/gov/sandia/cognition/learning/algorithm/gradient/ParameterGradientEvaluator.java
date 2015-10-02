@@ -19,6 +19,7 @@ import gov.sandia.cognition.math.matrix.Vectorizable;
 import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.Vector;
+import gov.sandia.cognition.math.matrix.VectorizableEvaluator;
 
 /**
  * Interface for computing the derivative of the output with respect to the
@@ -45,8 +46,7 @@ import gov.sandia.cognition.math.matrix.Vector;
     }
 )
 public interface ParameterGradientEvaluator<InputType, OutputType, GradientType>
-    extends Evaluator<InputType, OutputType>,
-        Vectorizable
+    extends VectorizableEvaluator<InputType, OutputType>
 {
     
     /**

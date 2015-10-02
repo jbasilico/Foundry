@@ -15,7 +15,6 @@
 
 package gov.sandia.cognition.learning.function.cost;
 
-import gov.sandia.cognition.evaluator.Evaluator;
 import gov.sandia.cognition.math.matrix.Vector;
 
 /**
@@ -24,14 +23,14 @@ import gov.sandia.cognition.math.matrix.Vector;
  * doing the differentiation of a given type of evaluator with respect to the 
  * cost function.
  *
- * @param <InputType> The type of input data for the differentiable function.
- * @param <OutputType> The type of output for the differentiable function.
  * @param <EvaluatedType> Type of evaluator (function) to evaluate and 
  *      differentiate.
+ * @param <CostParametersType> The type of the cost parameters.
  * @author Kevin R. Dixon
  * @since  1.0
  */
-public interface DifferentiableCostFunction<InputType, OutputType, EvaluatedType extends Evaluator<? super InputType, ? extends OutputType>>
+public interface DifferentiableCostFunction<EvaluatedType, CostParametersType>
+    extends CostParameterized<CostParametersType>
 {
  
     /**

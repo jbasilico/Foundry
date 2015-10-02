@@ -33,13 +33,10 @@ import gov.sandia.cognition.annotation.CodeReview;
     comments="Interface looks fine."
 )
 public interface VectorizableVectorFunction
-    extends Vectorizable, VectorFunction
+    extends VectorFunction, VectorizableEvaluator<Vector, Vector>
 {
     
-    /**
-     * {@inheritDoc}
-     * @return {@inheritDoc}
-     */
+    @Override
     public VectorizableVectorFunction clone();
     
 }

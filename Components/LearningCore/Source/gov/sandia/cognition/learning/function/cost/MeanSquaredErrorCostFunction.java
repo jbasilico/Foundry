@@ -41,7 +41,7 @@ import java.util.Collection;
 )
 public class MeanSquaredErrorCostFunction
     extends AbstractSupervisedCostFunction<Vector, Vector, Evaluator<? super Vector, ? extends Vector>>
-    implements DifferentiableCostFunction<Vector, Vector, GradientDescendable>
+    implements DifferentiableCostFunction<GradientDescendable, Collection<? extends InputOutputPair<? extends Vector, Vector>>>
 {
 
     /**

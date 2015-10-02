@@ -15,6 +15,7 @@
 package gov.sandia.cognition.learning.function.cost;
 
 import gov.sandia.cognition.evaluator.Evaluator;
+import gov.sandia.cognition.learning.data.InputOutputPair;
 import gov.sandia.cognition.math.matrix.Vector;
 import java.util.Collection;
 
@@ -32,7 +33,7 @@ import java.util.Collection;
  */
 public interface ParallelizableCostFunction<InputType, OutputType, EvaluatedType extends Evaluator<? super InputType, ? extends OutputType>, DifferentiableEvaluatedType extends EvaluatedType>
     extends SupervisedCostFunction<InputType, OutputType, EvaluatedType>, 
-        DifferentiableCostFunction<InputType, OutputType, DifferentiableEvaluatedType>
+        DifferentiableCostFunction<DifferentiableEvaluatedType, Collection<? extends InputOutputPair<? extends InputType, OutputType>>>
 {
 // TODO: This currently forces all parallelizable cost functions to be differentiable. Should this be loosened or perhaps another interface introduced for differentiation?
     

@@ -42,7 +42,7 @@ import java.util.logging.Logger;
  */
 public class ParallelizedCostFunctionContainer<InputType, OutputType, EvaluatedType extends Evaluator<? super InputType, ? extends OutputType>, DifferentiableEvaluatedType extends EvaluatedType>
     extends AbstractSupervisedCostFunction<InputType, OutputType, EvaluatedType>
-    implements DifferentiableCostFunction<InputType, OutputType, DifferentiableEvaluatedType>,
+    implements DifferentiableCostFunction<DifferentiableEvaluatedType, Collection<? extends InputOutputPair<? extends InputType, OutputType>>>,
         ParallelAlgorithm
 {
     

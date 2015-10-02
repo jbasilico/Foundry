@@ -89,7 +89,7 @@ public class ParameterDifferentiableCostMinimizer
     public ParameterCostEvaluatorDerivativeBased createInternalFunction()
     {
         return new ParameterCostEvaluatorDerivativeBased( 
-            this.getResult(), (DifferentiableCostFunction<Vector, Vector, ? super GradientDescendable>) this.getCostFunction());
+            this.getResult(), (DifferentiableCostFunction<? super GradientDescendable, ?>) this.getCostFunction());
     }
     
     /**
@@ -110,7 +110,7 @@ public class ParameterDifferentiableCostMinimizer
         /**
          * Cost function against which to evaluate the cost of the object.
          */
-        private DifferentiableCostFunction<Vector, Vector, ? super GradientDescendable> costFunction;
+        private DifferentiableCostFunction<? super GradientDescendable, ?> costFunction;
         
         /**
          * Creates a new instance of ParameterCostEvaluatorDerivativeBased
@@ -121,7 +121,7 @@ public class ParameterDifferentiableCostMinimizer
          */
         public ParameterCostEvaluatorDerivativeBased(
             GradientDescendable internalFunction,
-            DifferentiableCostFunction<Vector, Vector, ? super GradientDescendable> costFunction )
+            DifferentiableCostFunction<? super GradientDescendable, ?> costFunction )
         {
             this.internalFunction = internalFunction;
             this.costFunction = costFunction;

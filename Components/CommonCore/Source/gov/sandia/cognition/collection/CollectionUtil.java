@@ -98,7 +98,7 @@ public class CollectionUtil
      * @return ArrayList of the given Collection.
      */
     public static <DataType> ArrayList<DataType> asArrayList(
-        Iterable<DataType> data )
+        final Iterable<DataType> data )
     {
         if( data == null )
         {

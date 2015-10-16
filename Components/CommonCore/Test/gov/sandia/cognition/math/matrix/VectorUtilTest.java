@@ -239,4 +239,13 @@ public class VectorUtilTest
         assertTrue(expected.equals(result, epsilon));
     }
 
+    public void testNextNonZeroOrNull()
+    {
+        VectorEntry result = VectorUtil.nextNonZeroOrNull(new Vector3().iterator());
+        assertNull(result);
+        result = VectorUtil.nextNonZeroOrNull(new Vector3(5, 4, 3).iterator());
+        assertNotNull(result);
+        assertEquals(0, result.getIndex());
+        assertEquals(5.0, result.getValue(), 1.0);
+    }
 }

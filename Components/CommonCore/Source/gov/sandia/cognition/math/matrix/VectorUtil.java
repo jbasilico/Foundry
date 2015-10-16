@@ -14,6 +14,8 @@
 
 package gov.sandia.cognition.math.matrix;
 
+import java.util.Iterator;
+
 /**
  * Utility methods for dealing with vectors.
  *
@@ -255,6 +257,35 @@ public class VectorUtil
                 vector.assertDimensionalityEquals(dimensionality);
             }
         }
+    }
+    
+    /**
+     * Finds the next entry in the iterator that is non-zero or null if it
+     * runs out of elements in the iterator.
+     * 
+     * @param   iterator
+     *      The iterator to find the next non-zero entry in.
+     * @return 
+     *      The entry for the next non-zero value in the given iterator, or null
+     *      if there is no such entry.
+     */
+    public static VectorEntry nextNonZeroOrNull(
+        final Iterator<VectorEntry> iterator)
+    {
+        // Go through the iterator to find the match.
+        while (iterator.hasNext())
+        {
+            // Get the next elemenet and see if it is a non-zero.
+            final VectorEntry next = iterator.next();
+            if (next.getValue() != 0.0)
+            {
+                // Not a zero, so found what we were looking for.
+                return next;
+            }
+        }
+        
+        // Didn't find any remaining non-zero entries.
+        return null;
     }
     
 }

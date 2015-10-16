@@ -14,48 +14,37 @@
 
 package gov.sandia.cognition.math.matrix;
 
-import gov.sandia.cognition.annotation.CodeReview;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * Iterator that returns all nonzero entries for either underlying Vector
+ * Iterator that returns all non-zero entries for either underlying Vector. This
+ * iterator is implemented in a way such that it reuses the same entry between
+ * calls to next() so it should be copied.
  *
- * @author Kevin R. Dixon
- * @since  1.0
+ * @author  Kevin R. Dixon
+ * @author  Justin Basilico
+ * @since   1.0
  */
-@CodeReview(
-    reviewer="Jonathan McClain",
-    date="2006-05-17",
-    changesNeeded=false,
-    comments="Looks fine."
-)
 public class VectorUnionIterator
+    extends Object
     implements Iterator<TwoVectorEntry>
 {
     
-    /**
-     * Iterator from the first Vector
-     */
-    private Iterator<VectorEntry> firstIterator;
-    /**
-     * Iterator from the second Vector
-     */
-    private Iterator<VectorEntry> secondIterator;
+    /** The iterator for the first vector. */
+    protected final Iterator<VectorEntry> firstIterator;
     
-    /**
-     * TwoVectorEntry that represents entries from both Vectors
-     */
-    private TwoVectorEntry internalEntry;
+    /** The iterator for the second vector. */
+    protected final Iterator<VectorEntry> secondIterator;
     
-    /**
-     * VectorEntry from the first Vector
-     */
-    private VectorEntry firstInternalEntry;
-    /**
-     * VectorEntry from the second Vector
-     */
-    private VectorEntry secondInternalEntry;
+    /** The internal entry data structure. */
+    protected TwoVectorEntry internalEntry;
+    
+    /** The current entry for the first iterator. */
+    protected VectorEntry firstEntry;
+    
+    /** The current entry for the second iterator. */
+    protected VectorEntry secondEntry;
     
     /**
      * Creates a new instance of VectorUnionIterator.
@@ -67,313 +56,94 @@ public class VectorUnionIterator
         final Vector first,
         final Vector second)
     {
-        this(first.iterator(), second.iterator(), 
-            new DefaultTwoVectorEntry(first, second));
-    }
-    
-    /**
-     * Creates a new instance of VectorUnionIterator
-     * @param firstIterator Iterator from the first Vector
-     * @param secondIterator Iterator from the second Vector
-     * @param internalEntry TwoVectorEntry that represents entries from both Vectors
-     */
-    public VectorUnionIterator(
-        final Iterator<VectorEntry> firstIterator,
-        final Iterator<VectorEntry> secondIterator,
-        final TwoVectorEntry internalEntry)
-    {
-        this.setFirstIterator( firstIterator );
-        this.setSecondIterator( secondIterator );
-        this.setInternalEntry( internalEntry );
+        super();
         
-        this.setFirstInternalEntry( null );
-        this.setSecondInternalEntry( null );
-    }
-
-    /**
-     * Internal method for advancing the internal Iterators
-     */
-    protected void advanceInternalIterators()
-    {
-        
-        boolean advanceFirst = false;
-        boolean advanceSecond = false;
-        
-        EntryIndexComparator.Compare compare =
-            VectorEntryIndexComparator.INSTANCE.lowestIndex(
-                this.getFirstInternalEntry(), this.getSecondInternalEntry() );
-        
-        if( compare == EntryIndexComparator.Compare.FIRST_LOWEST )
-        {
-            advanceFirst = true;
-        }
-        else if( compare == EntryIndexComparator.Compare.SECOND_LOWEST )
-        {
-            advanceSecond = true;
-        }
-        else if( compare == EntryIndexComparator.Compare.FIRST_ENTRY_NULL )
-        {
-            advanceSecond = true;
-        }
-        else if( compare == EntryIndexComparator.Compare.SECOND_ENTRY_NULL )
-        {
-            advanceFirst = true;
-        }
-        else if( compare == EntryIndexComparator.Compare.BOTH_ENTRIES_NULL )
-        {
-            advanceFirst = true;
-            advanceSecond = true;
-        }
-        else if( compare == EntryIndexComparator.Compare.ENTRIES_EQUAL )
-        {
-            advanceFirst = true;
-            advanceSecond = true;
-        }        
-        else
-        {
-            throw new NoSuchElementException(
-                "Unknown Compare Enum: " + compare );
-         }
-            
-
-        if( (advanceFirst == false) &&
-            (advanceSecond == false) )
-        {
-            throw new NoSuchElementException(
-                "Problem: Not advancing any iterators..." );
-        }
-        
-        if( advanceFirst )
-        {
-            this.safeFirstNext();
-        }
-        
-        if( advanceSecond )
-        {
-            this.safeSecondNext();
-        }
-                
-    }
-    
-    /**               
-     * Try to advance the first entry... if the iterator throws an
-     * exception, then there are no more elements in the vector,
-     * so just null out the entry
-     *
-     * @return true if next was valid, false otherwise
-     */
-    public boolean safeFirstNext()
-    {
-        boolean valid_next = false;
-        
-        try
-        {
-            if (this.getFirstIterator().hasNext())
-            {
-                this.setFirstInternalEntry( this.getFirstIterator().next() );
-                valid_next = true;
-            }
-            else
-            {
-                this.setFirstInternalEntry(null);
-            }
-        }
-        catch (Exception e)
-        {
-            this.setFirstInternalEntry( null );
-        }
-        
-        return valid_next;
-        
-    }
-
-    /**               
-     * Try to advance the second entry... if the iterator throws an
-     * exception, then there are no more elements in the vector,
-     * so just null out the entry
-     *
-     * @return true if next was valid, false otherwise
-     */
-    public boolean safeSecondNext()
-    {
-        boolean valid_next = false;
-        
-        try
-        {
-            if (this.getSecondIterator().hasNext())
-            {
-                this.setSecondInternalEntry( this.getSecondIterator().next() );
-                valid_next = true;
-            }
-            else
-            {
-                this.setSecondInternalEntry(null);
-            }
-        }
-        catch (Exception e)
-        {
-            this.setSecondInternalEntry( null );
-        }
-        
-        return valid_next;
-        
-    }    
-    
-    
-    /**
-     * getter for firstIterator
-     * @return Iterator from the first Vector
-     */
-    public Iterator<VectorEntry> getFirstIterator()
-    {
-        return this.firstIterator;
-    }
-
-    /**
-     * setter for firstIterator
-     * @param firstIterator Iterator from the first Vector
-     */
-    public void setFirstIterator(
-        final Iterator<VectorEntry> firstIterator)
-    {
-        this.firstIterator = firstIterator;
-    }
-
-    /**
-     * getter for secondIterator
-     * @return Iterator from the second Vector
-     */
-    public Iterator<VectorEntry> getSecondIterator()
-    {
-        return this.secondIterator;
-    }
-
-    /**
-     * setter for secondIterator
-     * @param secondIterator Iterator from the second Vector
-     */
-    public void setSecondIterator(
-        final Iterator<VectorEntry> secondIterator)
-    {
-        this.secondIterator = secondIterator;
-    }
-
-    /**
-     * getter for internalEntry
-     * @return TwoVectorEntry that represents both Vectors
-     */
-    public TwoVectorEntry getInternalEntry()
-    {
-        return this.internalEntry;
-    }
-
-    /**
-     * setter for internalEntry
-     * @param internalEntry TwoVectorEntry that represents entries from both Vectors
-     */
-    public void setInternalEntry(
-        final TwoVectorEntry internalEntry)
-    {
-        this.internalEntry = internalEntry;
-    }
-
-    /**
-     * getter for firstInternalEntry
-     * @return VectorEntry from the first Vector
-     */
-    public VectorEntry getFirstInternalEntry()
-    {
-        return this.firstInternalEntry;
-    }
-
-    /**
-     * setter for firstInternalEntry
-     * @param firstInternalEntry VectorEntry from the first Vector
-     */
-    public void setFirstInternalEntry(
-        final VectorEntry firstInternalEntry)
-    {
-        this.firstInternalEntry = firstInternalEntry;
-    }
-
-    /**
-     * getter for secondInternalEntry
-     * @return VectorEntry from the second Vector
-     */
-    public VectorEntry getSecondInternalEntry()
-    {
-        return this.secondInternalEntry;
-    }
-
-    /**
-     * setter for secondInternalEntry
-     * @param secondInternalEntry VectorEntry from the second Vector
-     */
-    public void setSecondInternalEntry(
-        final VectorEntry secondInternalEntry)
-    {
-        this.secondInternalEntry = secondInternalEntry;
+        this.firstIterator = first.iterator();
+        this.secondIterator = second.iterator();
+        this.internalEntry = new DefaultTwoVectorEntry(first, second, -1);
+        this.firstEntry = VectorUtil.nextNonZeroOrNull(this.firstIterator);
+        this.secondEntry = VectorUtil.nextNonZeroOrNull(this.secondIterator);
     }
     
     @Override
     public boolean hasNext()
     {
-        return 
-               this.getFirstIterator().hasNext()
-            || this.getSecondIterator().hasNext()
-            || (this.firstInternalEntry != null && this.secondInternalEntry != null
-                && this.firstInternalEntry.getIndex() != this.secondInternalEntry.getIndex());
+        // The entries are already at the next position, so as long as there
+        // is one, there is more to iterate over.
+        return this.firstEntry != null || this.secondEntry != null;
     }
 
     @Override
     public TwoVectorEntry next()
     {
-        
-        this.advanceInternalIterators();
-        
-        EntryIndexComparator.Compare compare = 
-            VectorEntryIndexComparator.INSTANCE.lowestIndex(
-                this.getFirstInternalEntry(), this.getSecondInternalEntry() );
-        
-        if( compare == EntryIndexComparator.Compare.ENTRIES_EQUAL )
+        // Figure out the index of the two vectors to use next.
+        final boolean hasFirst = this.firstEntry != null;
+        final boolean hasSecond = this.secondEntry != null;
+        int index = -1;
+        if (hasFirst && hasSecond)
         {
-            this.getInternalEntry().setIndex(
-                this.getFirstInternalEntry().getIndex() );
+            // Normal case where both have entries. The next value is the
+            // minimum index.
+            final int firstIndex = this.firstEntry.getIndex();
+            final int secondIndex = this.secondEntry.getIndex();
+            
+            if (firstIndex <= secondIndex)
+            {
+                // Advance the first iterator since it is at the minimum index.
+                index = firstIndex;
+                this.firstEntry = VectorUtil.nextNonZeroOrNull(this.firstIterator);
+            }
+            
+            if (secondIndex <= firstIndex)
+            {
+                // Advance the second iterator since it is a the minimum index.
+                index = secondIndex;
+                this.secondEntry = VectorUtil.nextNonZeroOrNull(this.secondIterator);
+            }
+            
+            // Note that above it may advance both iterators if they're at the
+            // same index. Technically index gets set twice also, but that 
+            // doesn't really matter since they're the same.
         }
-        else if( compare == EntryIndexComparator.Compare.FIRST_LOWEST )
+        else if (hasFirst)
         {
-            this.getInternalEntry().setIndex(
-                this.getFirstInternalEntry().getIndex() );
+            // This means the second iterator ran out. Just keep going on the
+            // first one.
+            index = this.firstEntry.getIndex();
+            this.firstEntry = VectorUtil.nextNonZeroOrNull(this.firstIterator);
         }
-        else if( compare == EntryIndexComparator.Compare.SECOND_LOWEST )
+        else if (hasSecond)
         {
-            this.getInternalEntry().setIndex(
-                this.getSecondInternalEntry().getIndex() );
-        }
-        else if( compare == EntryIndexComparator.Compare.FIRST_ENTRY_NULL )
-        {
-            this.getInternalEntry().setIndex(
-                this.getSecondInternalEntry().getIndex() );
-        }
-        else if( compare == EntryIndexComparator.Compare.SECOND_ENTRY_NULL )
-        {
-            this.getInternalEntry().setIndex(
-                this.getFirstInternalEntry().getIndex() );
+            // This means the first iterator ran out. Just keep going on the 
+            // second one.
+            index = this.secondEntry.getIndex();
+            this.secondEntry = VectorUtil.nextNonZeroOrNull(this.secondIterator);
         }
         else
         {
-            throw new NoSuchElementException( "No elements remaining." );
+            // Both iterators ran out. No more data, so an exception.
+            // Index is set to -1 here to indicate the entry is now
+            // bad.
+            this.internalEntry.setIndex(-1);
+            throw new NoSuchElementException();
         }
-
-        return this.getInternalEntry();
         
+        // Update the internal entry to the new index.
+        this.internalEntry.setIndex(index);
+        return this.internalEntry;
     }
 
     @Override
     public void remove()
     {
-        this.getInternalEntry().setFirstValue( 0.0 );
-        this.getInternalEntry().setSecondValue( 0.0 );
+        if (this.internalEntry.getIndex() < 0)
+        {
+            // Indicates there is no more internal entries.
+            throw new NoSuchElementException();
+        }
+        
+        this.internalEntry.setFirstValue(0.0);
+        this.internalEntry.setSecondValue(0.0);
     }
     
 }

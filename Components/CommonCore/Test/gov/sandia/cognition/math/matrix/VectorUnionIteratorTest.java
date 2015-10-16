@@ -1,7 +1,9 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * File:            VectorUnionIteratorTest.java
+ * Authors:         Justin Basilico
+ * Project:         Cognitive Foundry
+ * 
+ * Copyright 2015 Cognitive Foundry. All rights reserved.
  */
 
 package gov.sandia.cognition.math.matrix;
@@ -11,16 +13,22 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
- * @author justin
+ * Unit tests for class {@link VectorIntersectionIterator}.
+ * 
+ * @author  Justin Basilico
+ * @since   3.4.0
  */
 public class VectorUnionIteratorTest
+    extends Object
 {
     
+    /**
+     * Creates a new test.
+     */
     public VectorUnionIteratorTest()
     {
+        super();
     }
-
 
     /**
      * Test of hasNext method, of class VectorUnionIterator.
@@ -39,9 +47,16 @@ public class VectorUnionIteratorTest
         instance.next();
         assertFalse(instance.hasNext());
         
-        VectorFactory<?> vf = VectorFactory.getSparseDefault();
+        VectorFactory<?> vf = VectorFactory.getDenseDefault();
         Vector a = vf.createVector(10);
         Vector b = vf.createVector(10);
+        
+        instance = new VectorUnionIterator(a, b);
+        assertFalse(instance.hasNext());
+        
+        vf = VectorFactory.getSparseDefault();
+        a = vf.createVector(10);
+        b = vf.createVector(10);
         
         a.set(1, 3);
         b.set(1, 3);
@@ -88,6 +103,9 @@ public class VectorUnionIteratorTest
         VectorFactory<?> vf = VectorFactory.getSparseDefault();
         Vector a = vf.createVector(10);
         Vector b = vf.createVector(10);
+        
+        instance = new VectorUnionIterator(a, b);
+        assertFalse(instance.hasNext());
         
         a.set(1, 3);
         b.set(1, 3);

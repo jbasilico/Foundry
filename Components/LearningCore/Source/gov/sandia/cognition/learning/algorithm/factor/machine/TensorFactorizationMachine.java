@@ -22,6 +22,7 @@ import gov.sandia.cognition.math.matrix.VectorInputEvaluator;
 import gov.sandia.cognition.util.ArgumentChecker;
 import gov.sandia.cognition.util.ObjectUtil;
 import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * Implements a higher-order Factorization Machine. It models sets of n-way
@@ -43,7 +44,7 @@ import java.util.Arrays;
  * high-dimensional, sparse data.
  * 
  * @author  Justin Basilico
- * @since   3.4.2
+ * @since   3.4.3
  * @see     FactorizationMachine
  */
 @PublicationReferences(references={
@@ -80,6 +81,9 @@ public class TensorFactorizationMachine
      *  this contains k_l x d factor matrix (v) with k_l factors for each 
      *  dimension. Cannot be null. */
     protected Matrix[] factorsPerWay;
+    
+    /** The total number of factors across all ways. */
+    protected int totalFactors;
 
 // TODO: May need to enforce that the number of ways is less than or equal to d.
     
@@ -487,6 +491,140 @@ public class TensorFactorizationMachine
     }
     
     /**
+     * Increments the parameters of the model by the given input vector.
+     * This is often used in conjunction with Stochastic Gradient Descent
+     * (SGD).
+     * 
+     * @param   input 
+     *      The input vector of parameters values to increment.
+     */
+// TODO: Enable this once the interface is for it is added.
+//    @Override
+    public void incrementParameterVector(
+        final Vector input)
+    {
+        input.assertDimensionalityEquals(this.getParameterCount());
+        final int d = this.getInputDimensionality();
+        
+        // Go through the input vector
+        final Iterator<VectorEntry> it = input.iterator();
+        
+        if (!it.hasNext())
+        {
+            // Empty update.
+            return;
+        }
+        
+        VectorEntry entry = it.next();
+        int index = entry.getIndex();
+        
+        // First check the bias.
+        if (index == 0)
+        {
+            this.bias += entry.getValue();
+            entry = it.hasNext() ? it.next() : null;
+        }
+        
+        // Now check the weights.
+        int offset = 1;
+        if (this.weights != null)
+        {
+            final int weightsEnd = offset + d;
+            while (entry != null && entry.getIndex() < weightsEnd)
+            {
+                this.weights.increment(entry.getIndex() - offset, 
+                    entry.getValue());
+                entry = (it.hasNext() ? it.next() : null);
+            }
+            offset += d;
+        }
+
+        // Now check all the factors.
+        for (final Matrix factors : this.factorsPerWay)
+        {
+            if (factors != null)
+            {                    
+                final int factorCount = factors.getNumRows();
+                final int factorEnd = offset + factorCount * d;
+                while (entry != null && entry.getIndex() < factorEnd)
+                {
+                    final int i = entry.getIndex() - offset;
+                    factors.increment(i / d, i % d, entry.getValue());
+                    entry = (it.hasNext() ? it.next() : null);
+                }
+
+                offset += factorCount * d;
+            }
+        }
+    }
+    
+    /**
+     * Gets the active elements in the parameter vector for evaluating the
+     * given input. This means that if this Factorization Machine were
+     * parameterized with these values and the rest of the values being 
+     * zero, it would still produce the same output for this input.
+     * 
+     * @param   input
+     *      The input to get the active parameter vector for.
+     * @return 
+     *      The vector containing the active set of parameters used in
+     *      evaluating the given input.
+     */
+    public Vector getActiveParameterVector(
+        final Vector input)
+    {
+        final int d = this.getInputDimensionality();
+        
+        // Estimate the number of values used in the resulting vector.
+        final Vector result = VectorFactory.getSparseDefault().createVectorCapacity(
+            this.getParameterCount(),
+            1 + input.getEntryCount() * (1 + this.totalFactors));
+        
+        // If the bias is active, use it.
+        result.set(0, this.bias);
+        
+        int offset = 1;
+        
+        // Now go through the weights.
+        if (this.weights != null)
+        {
+            for (final VectorEntry entry : input)
+            {
+                final int index = entry.getIndex();
+                final double value = this.weights.get(index);
+                result.set(offset + index, value);
+            }
+            offset += d;
+        }
+        // else - No weights.
+        
+        // Go through all the factors for each way.
+        for (final Matrix factors : this.factorsPerWay)
+        {
+            if (factors == null)
+            {
+                // Skip empty factors.
+                continue;
+            }
+
+            final int factorCount = factors.getNumRows();            
+            for (int k = 0; k < factorCount; k++)
+            {
+                for (final VectorEntry entry : input)
+                {
+                    final int index = entry.getIndex();
+                    final double value = factors.getElement(k, index);
+                    result.set(offset + index, value);
+                }
+                
+                offset += d;
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
      * Gets the number of parameters for this factorization machine. This is
      * the size of the parameter vector returned by convertToVector(). This
      * is not the number of factors (which is getFactorCount()) or the
@@ -749,6 +887,7 @@ public class TensorFactorizationMachine
         ArgumentChecker.assertIsNotNull("factorsPerWay", factorsPerWay);
 
         int expectedDimensionality = -1;
+        int totalFactors = 0;
         for (final Matrix factors : factorsPerWay)
         {
             if (factors != null)
@@ -763,10 +902,12 @@ public class TensorFactorizationMachine
                     throw new IllegalArgumentException(
                         "All factors matrices must have the same number of columns");
                 }
+                totalFactors += factors.getNumRows();
             }
         }
         
         this.factorsPerWay = factorsPerWay;
+        this.totalFactors = totalFactors;
     }
     
 }

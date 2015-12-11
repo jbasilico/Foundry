@@ -35,10 +35,16 @@ public class TensorFactorizationMachineStochasticGradient
     implements Randomized, MeasurablePerformanceAlgorithm
 {
     
+    /** The default for weights enabled is {@value}. */
+    public static final boolean DEFAULT_WEIGHTS_ENABLED = true;
+    
     /**
      * The default learning rate is {@value}.
      */
     public static final double DEFAULT_LEARNING_RATE = 0.001;
+    
+    /** True if the linear weight term is enabled. */
+    protected boolean weightsEnabled;
 
     /** The number of factors to do for each n-way interaction, starting with 
      *  2-way. */
@@ -98,6 +104,7 @@ public class TensorFactorizationMachineStochasticGradient
     {
         super(maxIterations);
         
+        this.weightsEnabled = DEFAULT_WEIGHTS_ENABLED;
         this.factorCountPerWay = factorCountPerWay;
         this.biasRegularization = biasRegularization;
         this.weightRegularization = weightRegularization;
@@ -115,6 +122,11 @@ public class TensorFactorizationMachineStochasticGradient
         
         // Initialize the factorization.
         this.result = new TensorFactorizationMachine(dimensionality, this.factorCountPerWay);
+        
+        if (!this.weightsEnabled)
+        {
+            this.result.setWeights(null);
+        }
         
         int wayIndex = -1;
         for (final Matrix factors : this.result.getFactorsPerWay())
@@ -141,10 +153,13 @@ public class TensorFactorizationMachineStochasticGradient
         this.regularizationMask = VectorFactory.getDenseDefault().createVector(result.getParameterCount());
         this.regularizationMask.set(0, this.biasRegularization);
         int index = 1;
-        for (int i = 0; i < dimensionality; i++)
+        if (this.weightsEnabled)
         {
-            this.regularizationMask.set(index, this.weightRegularization);
-            index++;
+            for (int i = 0; i < dimensionality; i++)
+            {
+                this.regularizationMask.set(index, this.weightRegularization);
+                index++;
+            }
         }
         for (int way = 0; way < this.factorCountPerWay.length; way++)
         {
@@ -281,6 +296,31 @@ public class TensorFactorizationMachineStochasticGradient
     public NamedValue<? extends Number> getPerformance()
     {
         return DefaultNamedValue.create("objective", this.getObjective());
+    }
+    
+    /**
+     * Gets whether or not the linear weight term is enabled. If it is not
+     * enabled, it will default to a zero vector and not be updated.
+     * 
+     * @return 
+     *      True if the linear term is enabled, otherwise false.
+     */
+    public boolean isWeightsEnabled()
+    {
+        return this.weightsEnabled;
+    }
+
+    /**
+     * Sets whether or not the linear weight term is enabled. If it is not
+     * enabled, it will default to a zero vector and not be updated.
+     * 
+     * @param   weightsEnabled 
+     *      True if the linear term is enabled, otherwise false.
+     */
+    public void setWeightsEnabled(
+        final boolean weightsEnabled)
+    {
+        this.weightsEnabled = weightsEnabled;
     }
 
     @Override

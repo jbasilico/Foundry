@@ -462,6 +462,71 @@ public class TensorFactorizationMachineTest
         assertNull(instance.getFactors(4));
     }
     
+    
+    /**
+     * Test of incrementParameterVector method, of class TensorFactorizationMachine.
+     */
+    @Test
+    public void testIncrementParameterVector()
+    {
+        VectorFactory<?> vf = VectorFactory.getSparseDefault();
+        TensorFactorizationMachine instance = new TensorFactorizationMachine();
+        Vector converted = instance.convertToVector();
+        Vector increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        Vector expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+        
+        int d = 7;
+        int k2 = 4;
+        int k4 = 3;
+        instance = new TensorFactorizationMachine(d, k2, 0, k4);
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+        
+        double bias = this.random.nextGaussian();
+        Vector weights = VectorFactory.getDefault().createUniformRandom(d, -1, 1, random);
+        Matrix factors2 = MatrixFactory.getDefault().createUniformRandom(k2, d, -1, 1, random);
+        Matrix factors4 = MatrixFactory.getDefault().createUniformRandom(k4, d, -1, 1, random);
+        instance = new TensorFactorizationMachine(bias, weights.clone(), factors2.clone(), null, factors4.clone());
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertEquals(expected, instance.convertToVector());
+        assertNull(instance.getFactors(3));
+        
+        instance = new TensorFactorizationMachine(d, k2, 0, k4);
+        expected = converted.clone();
+        instance.incrementParameterVector(converted);
+        assertTrue(expected.equals(instance.convertToVector()));
+        assertEquals(bias, instance.getBias(), 0.0);
+        assertEquals(weights, instance.getWeights());
+        assertEquals(factors2, instance.getFactors(2));
+        assertNull(instance.getFactors(3));
+        assertEquals(factors4, instance.getFactors(4));
+        
+        // Try with weights disabled.
+        instance.setWeights(null);
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+        
+        // Try with factors disabled.
+        instance.setWeights(weights.clone());
+        instance.setFactorsPerWay(new Matrix[3]);
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+    }
+    
     /**
      * Test of getParameterCount method, of class TensorFactorizationMachine.
      */

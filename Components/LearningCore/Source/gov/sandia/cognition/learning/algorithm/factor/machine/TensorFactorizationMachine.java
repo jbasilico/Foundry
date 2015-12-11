@@ -590,9 +590,12 @@ public class TensorFactorizationMachine
         {
             for (final VectorEntry entry : input)
             {
-                final int index = entry.getIndex();
-                final double value = this.weights.get(index);
-                result.set(offset + index, value);
+                if (entry.getValue() != 0.0)
+                {
+                    final int index = entry.getIndex();
+                    final double value = this.weights.get(index);
+                    result.set(offset + index, value);
+                }
             }
             offset += d;
         }
@@ -612,9 +615,12 @@ public class TensorFactorizationMachine
             {
                 for (final VectorEntry entry : input)
                 {
-                    final int index = entry.getIndex();
-                    final double value = factors.getElement(k, index);
-                    result.set(offset + index, value);
+                    if (entry.getValue() != 0.0)
+                    {
+                        final int index = entry.getIndex();
+                        final double value = factors.get(k, index);
+                        result.set(offset + index, value);
+                    }
                 }
                 
                 offset += d;

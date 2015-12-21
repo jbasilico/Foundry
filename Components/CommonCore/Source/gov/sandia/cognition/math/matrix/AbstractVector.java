@@ -193,20 +193,50 @@ public abstract class AbstractVector
     }
 
     @Override
+    public Vector transform(
+        final IndexValueTransform function)
+    {
+        final Vector result = this.clone();
+        result.transformEquals(function);
+        return result;
+    }
+
+    @Override
     public void transformEquals(
         final UnivariateScalarFunction function)
     {
         final int dimensionality = this.getDimensionality();
         for (int i = 0; i < dimensionality; i++)
         {
-            final double value = function.evaluateAsDouble(this.getElement(i));
-            this.setElement(i, value);
+            final double value = function.evaluate(this.get(i));
+            this.set(i, value);
         }
     }
 
     @Override
+    public void transformEquals(
+        final IndexValueTransform function)
+    {
+        final int dimensionality = this.getDimensionality();
+        for (int i = 0; i < dimensionality; i++)
+        {
+            final double value = function.transform(i, this.get(i));
+            this.set(i, value);
+        }
+    }
+    
+    @Override
     public Vector transformNonZeros(
         final UnivariateScalarFunction function)
+    {
+        final Vector result = this.clone();
+        result.transformNonZerosEquals(function);
+        return result;
+    }
+    
+    @Override
+    public Vector transformNonZeros(
+        final IndexValueTransform function)
     {
         final Vector result = this.clone();
         result.transformNonZerosEquals(function);
@@ -217,12 +247,30 @@ public abstract class AbstractVector
     public void transformNonZerosEquals(
         final UnivariateScalarFunction function)
     {
+        // Default implementation uses an iterator. However, specialized 
+        // sub-classes can add optimizations.
         for (final VectorEntry entry : this)
         {
             final double value = entry.getValue();
             if (value != 0.0)
             {
-                entry.setValue(function.evaluateAsDouble(value));
+                entry.setValue(function.evaluate(value));
+            }
+        }
+    }
+
+    @Override
+    public void transformNonZerosEquals(
+        final IndexValueTransform function)
+    {
+        // Default implementation uses an iterator. However, specialized 
+        // sub-classes can add optimizations.
+        for (final VectorEntry entry : this)
+        {
+            final double value = entry.getValue();
+            if (value != 0.0)
+            {
+                entry.setValue(function.transform(entry.getIndex(), value));
             }
         }
     }

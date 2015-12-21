@@ -20,6 +20,7 @@ import gov.sandia.cognition.math.matrix.VectorEntry;
 import gov.sandia.cognition.math.matrix.VectorFactory;
 import gov.sandia.cognition.math.matrix.VectorInputEvaluator;
 import gov.sandia.cognition.util.ObjectUtil;
+import java.util.Iterator;
 
 /**
  * Implements a Factorization Machine. It implements a model of pairwise 
@@ -319,6 +320,60 @@ public class FactorizationMachine
                 this.factors.setRow(k, 
                     parameters.subVector(offset, offset + d - 1));
                 offset += d;
+            }
+        }
+    }
+    
+    @Override
+    public void incrementParameterVector(
+        final Vector input)
+    {
+        input.assertDimensionalityEquals(this.getParameterCount());
+        final int d = this.getInputDimensionality();
+        
+        // Go through the input vector
+        final Iterator<VectorEntry> it = input.iterator();
+        
+        if (!it.hasNext())
+        {
+            // Empty update.
+            return;
+        }
+        
+        VectorEntry entry = it.next();
+        int index = entry.getIndex();
+        
+        // First check the bias.
+        if (index == 0)
+        {
+            this.bias += entry.getValue();
+            entry = it.hasNext() ? it.next() : null;
+        }
+        
+        // Now check the weights.
+        int offset = 1;
+        if (this.hasWeights())
+        {
+            final int weightsEnd = offset + d;
+            while (entry != null && entry.getIndex() < weightsEnd)
+            {
+                this.weights.increment(entry.getIndex() - offset, 
+                    entry.getValue());
+                entry = (it.hasNext() ? it.next() : null);
+            }
+            offset += d;
+        }
+
+        // Now check all the factors.
+        if (this.hasFactors())
+        {                    
+            final int factorCount = this.factors.getNumRows();
+            final int factorEnd = offset + factorCount * d;
+            while (entry != null && entry.getIndex() < factorEnd)
+            {
+                final int i = entry.getIndex() - offset;
+                this.factors.increment(i / d, i % d, entry.getValue());
+                entry = (it.hasNext() ? it.next() : null);
             }
         }
     }

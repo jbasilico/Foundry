@@ -102,6 +102,13 @@ public class PolynomialFunction
     }
 
     @Override
+    public void incrementParameterVector(
+        final Vector increments)
+    {
+        this.setExponent(this.getExponent() + increments.get(0));
+    }
+    
+    @Override
     public double differentiate(
         final double input )
     {

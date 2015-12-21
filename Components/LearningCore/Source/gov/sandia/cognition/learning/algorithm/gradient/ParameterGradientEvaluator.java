@@ -61,4 +61,15 @@ public interface ParameterGradientEvaluator<InputType, OutputType, GradientType>
     public GradientType computeParameterGradient(
         final InputType input);
     
+    /**
+     * Increments the parameter vector of the evaluator. This is provided as an
+     * optimization for some evaluators to be able to do methods like stochastic
+     * gradient with sparse update vectors.
+     * 
+     * @param   input
+     *      The input increments for the parameters.
+     */
+    public void incrementParameterVector(
+        final Vector input);
+    
 }

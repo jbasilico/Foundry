@@ -139,5 +139,13 @@ public class DifferentiableGeneralizedLinearModel
         return dydu.times( dudx );
 
     }
+    
+    @Override
+    public void incrementParameterVector(
+        final Vector input)
+    {
+// TODO: Make this use sparseness efficiently.
+        this.convertFromVector(this.convertToVector().plus(input));
+    }
 
 }

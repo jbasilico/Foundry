@@ -379,6 +379,66 @@ public class FactorizationMachineTest
         assertNull(instance.getFactors());
     }
 
+    
+    /**
+     * Test of incrementParameterVector method, of class FactorizationMachine.
+     */
+    @Test
+    public void testIncrementParameterVector()
+    {
+        VectorFactory<?> vf = VectorFactory.getSparseDefault();
+        FactorizationMachine instance = new FactorizationMachine();
+        Vector converted = instance.convertToVector();
+        Vector increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        Vector expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+        
+        int d = 7;
+        int k = 4;
+        instance = new FactorizationMachine(d, k);
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+        
+        double bias = this.random.nextGaussian();
+        Vector weights = VectorFactory.getDefault().createUniformRandom(d, -1, 1, random);
+        Matrix factors = MatrixFactory.getDefault().createUniformRandom(k, d, -1, 1, random);
+        instance = new FactorizationMachine(bias, weights.clone(), factors.clone());
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertEquals(expected, instance.convertToVector());
+        
+        instance = new FactorizationMachine(d, k);
+        expected = converted.clone();
+        instance.incrementParameterVector(converted);
+        assertTrue(expected.equals(instance.convertToVector()));
+        assertEquals(bias, instance.getBias(), 0.0);
+        assertEquals(weights, instance.getWeights());
+        assertEquals(factors, instance.getFactors());
+        
+        // Try with weights disabled.
+        instance.setWeights(null);
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+        
+        // Try with factors disabled.
+        instance.setWeights(weights.clone());
+        instance.setFactors(null);
+        converted = instance.convertToVector();
+        increment = vf.createUniformRandom(converted.getDimensionality(), -1, 1, random);
+        expected = converted.plus(increment);
+        instance.incrementParameterVector(increment);
+        assertTrue(expected.equals(instance.convertToVector()));
+    }
+    
     /**
      * Test of hasWeights method, of class FactorizationMachine.
      */

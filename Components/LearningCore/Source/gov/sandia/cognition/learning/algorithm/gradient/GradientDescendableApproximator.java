@@ -148,6 +148,14 @@ public class GradientDescendableApproximator
     {
         this.getFunction().convertFromVector( parameters );
     }
+    
+    @Override
+    public void incrementParameterVector(
+        final Vector input)
+    {
+// TODO: Make this use sparseness efficiently.
+        this.getFunction().convertFromVector(this.getFunction().convertToVector().plus(input));
+    }
 
     public Vector evaluate(
         Vector input )

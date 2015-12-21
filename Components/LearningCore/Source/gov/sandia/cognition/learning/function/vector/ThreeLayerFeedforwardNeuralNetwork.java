@@ -320,6 +320,14 @@ public class ThreeLayerFeedforwardNeuralNetwork
         return parameters;
 
     }
+    
+    @Override
+    public void incrementParameterVector(
+        final Vector input)
+    {
+// TODO: Make this use sparseness efficiently.
+        this.convertFromVector(this.convertToVector().plus(input));
+    }
 
     /**
      * Gets the total number of parameters in the neural net, including

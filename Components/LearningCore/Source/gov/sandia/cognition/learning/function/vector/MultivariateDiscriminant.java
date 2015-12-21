@@ -153,6 +153,14 @@ public class MultivariateDiscriminant
     {
         this.discriminant.convertFromVector( parameters );
     }
+    
+    @Override
+    public void incrementParameterVector(
+        final Vector input)
+    {
+// TODO: Make this use sparseness efficiently.
+        this.convertFromVector(this.convertToVector().plus(input));
+    }
 
     @Override
     public Vector evaluate(

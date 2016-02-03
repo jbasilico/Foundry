@@ -261,7 +261,7 @@ public class FactorizationMachineStochasticGradientTest
         instance.setBiasRegularization(0.0);
         instance.setWeightRegularization(0.01);
         instance.setFactorRegularization(0.1);
-        instance.setLearningRate(0.005);
+        instance.setLearningRate(0.00005);
         instance.setMaxIterations(1000);
         instance.setRandom(random);
         

@@ -64,6 +64,10 @@ public class FactorizationMachineStochasticGradient
     /** The input data represented as a list for fast access. */
     protected transient ArrayList<? extends InputOutputPair<? extends Vector, Double>> dataList;
     
+    /** The sum of weights across the data. For unweighted data this is the
+     *  size of the data list. */
+    protected transient double weightSum;
+    
     /** The total error for the current iteration. */
     protected transient double totalError;
     
@@ -83,7 +87,7 @@ public class FactorizationMachineStochasticGradient
     }
     
     /**
-     * Creates a new {@link AbstractFactorizationMachineLearner}.
+     * Creates a new {@link FactorizationMachineStochasticGradient}.
      * 
      * @param   factorCount
      *      The number of factors to use. Zero means no factors. Cannot be
@@ -131,6 +135,7 @@ public class FactorizationMachineStochasticGradient
         }
 
         this.dataList = CollectionUtil.asArrayList(this.data);
+        this.weightSum = DatasetUtil.sumWeights(this.dataList);
         this.totalError = 0.0;
         this.totalChange = 0.0;
         return true;
@@ -170,14 +175,14 @@ public class FactorizationMachineStochasticGradient
         final double error = prediction - label;
         
         // Compute the step size for this example.
-        final double stepSize = this.learningRate * weight / this.data.size();
+        final double stepSize = this.learningRate * weight;
         
         if (this.isBiasEnabled())
         {
             // Update the bias term.
             final double oldBias = this.result.getBias();
-            final double biasChange = stepSize * (2.0 * error 
-                + 2.0 * this.biasRegularization * oldBias);
+            final double biasChange = stepSize * (error 
+                + this.biasRegularization * oldBias);
             this.result.setBias(oldBias - biasChange);
             this.totalChange += Math.abs(biasChange);
         }
@@ -190,8 +195,9 @@ public class FactorizationMachineStochasticGradient
             {
                 final int index = entry.getIndex();
                 final double value = entry.getValue();
-                final double weightChange = stepSize * (2.0 * error * value 
-                    + 2.0 * this.weightRegularization * weights.getElement(index));
+                final double weightChange = stepSize * 
+                    (error * value 
+                    + this.weightRegularization * weights.get(index));
 
                 weights.decrement(index, weightChange);
                 this.totalChange += Math.abs(weightChange);
@@ -210,18 +216,18 @@ public class FactorizationMachineStochasticGradient
                 double sum = 0.0;
                 for (final VectorEntry entry : input)
                 {
-                    sum += entry.getValue() * factors.getElement(k, entry.getIndex());
+                    sum += entry.getValue() * factors.get(k, entry.getIndex());
                 }
 
                 for (final VectorEntry entry : input)
                 {
                     final int index = entry.getIndex();
                     final double value = entry.getValue();
-                    final double factorElement = factors.getElement(k, index);
+                    final double factorElement = factors.get(k, index);
                     final double gradient = value * (sum - value * factorElement);
                     
-                    final double factorChange = stepSize * (2.0 * error * gradient 
-                        + 2.0 * this.factorRegularization * factorElement);
+                    final double factorChange = stepSize * (error * gradient 
+                        + this.factorRegularization * factorElement);
                     factors.decrement(k, index, factorChange);
                     this.totalChange += Math.abs(factorChange);
                 }
@@ -298,8 +304,8 @@ public class FactorizationMachineStochasticGradient
      */
     public double getObjective()
     {
-        return this.getTotalError() / this.data.size()
-            + this.getRegularizationPenalty();
+        return 0.5 * this.getTotalError() / this.weightSum
+            + 0.5 * this.getRegularizationPenalty();
     }
 
     @Override

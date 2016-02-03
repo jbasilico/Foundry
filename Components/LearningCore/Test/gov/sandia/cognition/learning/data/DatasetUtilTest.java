@@ -414,6 +414,72 @@ public class DatasetUtilTest
         assertEquals(2.0, result.get("two"));
         assertEquals(4.0, result.get("another"));
     }
+    
+    /**
+     * Test of findMinOutput method, of class DatasetUtil.
+     */
+    public void testFindMinOutput()
+    {
+        Collection<InputOutputPair<Object, Double>> data = null;
+        assertEquals(Double.POSITIVE_INFINITY, DatasetUtil.findMinOutput(data));
+
+        data = new LinkedList<>();
+        assertEquals(Double.POSITIVE_INFINITY, DatasetUtil.findMinOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 2.0));
+        assertEquals(2.0, DatasetUtil.findMinOutput(data));
+        
+        data.add(new DefaultInputOutputPair<>(null, 4.0));
+        assertEquals(2.0, DatasetUtil.findMinOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 4.0));
+        assertEquals(2.0, DatasetUtil.findMinOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 2.0));
+        assertEquals(2.0, DatasetUtil.findMinOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 0.0));
+        assertEquals(0.0, DatasetUtil.findMinOutput(data), 0.001);
+
+        data.add(new DefaultInputOutputPair<>(null, -10.0));
+        assertEquals(-10.0, DatasetUtil.findMinOutput(data), 0.001);
+        
+        data.add(new DefaultInputOutputPair<>(null, 11.0));
+        assertEquals(-10.0, DatasetUtil.findMinOutput(data), 0.001);
+    }
+    
+    /**
+     * Test of findMaxOutput method, of class DatasetUtil.
+     */
+    public void testFindMaxOutput()
+    {
+        Collection<InputOutputPair<Object, Double>> data = null;
+        assertEquals(Double.NEGATIVE_INFINITY, DatasetUtil.findMaxOutput(data));
+
+        data = new LinkedList<>();
+        assertEquals(Double.NEGATIVE_INFINITY, DatasetUtil.findMaxOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 2.0));
+        assertEquals(2.0, DatasetUtil.findMaxOutput(data));
+        
+        data.add(new DefaultInputOutputPair<>(null, 4.0));
+        assertEquals(4.0, DatasetUtil.findMaxOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 4.0));
+        assertEquals(4.0, DatasetUtil.findMaxOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 2.0));
+        assertEquals(4.0, DatasetUtil.findMaxOutput(data));
+
+        data.add(new DefaultInputOutputPair<>(null, 0.0));
+        assertEquals(4.0, DatasetUtil.findMaxOutput(data), 0.001);
+
+        data.add(new DefaultInputOutputPair<>(null, -10.0));
+        assertEquals(4.0, DatasetUtil.findMaxOutput(data), 0.001);
+        
+        data.add(new DefaultInputOutputPair<>(null, 11.0));
+        assertEquals(11.0, DatasetUtil.findMaxOutput(data), 0.001);
+    }
 
     /**
      * Test of inputsList method, of class DatasetUtil.

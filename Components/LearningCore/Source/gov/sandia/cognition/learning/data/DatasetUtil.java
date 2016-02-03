@@ -475,6 +475,61 @@ public class DatasetUtil
 
         return outputs;
     }
+    
+    /**
+     * Finds the minimum value of the output.
+     * 
+     * @param   data
+     *      The data to collect the output values from.
+     * @return 
+     *      The maximum value of an output. If the data is empty,
+     *      Double.POSITIVE_INFINITY is returned.
+     */
+    public static double findMinOutput(
+        final Collection<? extends InputOutputPair<?, ? extends Number>> data)
+    {
+        // Compute the sum in order to find the mean.
+        double min = Double.POSITIVE_INFINITY;
+        if (data != null)
+        {
+            for (final InputOutputPair<?, ? extends Number> example : data)
+            {
+                final double value = example.getOutput().doubleValue();
+                if (value < min)
+                {
+                    min = value;
+                }
+            }
+        }
+        return min;
+    }
+    
+    /**
+     * Finds the maximum value of the output.
+     * 
+     * @param   data
+     *      The data to collect the output values from.
+     * @return 
+     *      The maximum value of an output. If the data is empty,
+     *      Double.NEGATIVE_INFINITY is returned.
+     */
+    public static double findMaxOutput(
+        final Collection<? extends InputOutputPair<?, ? extends Number>> data)
+    {
+        double max = Double.NEGATIVE_INFINITY;
+        if (data != null)
+        {
+            for (final InputOutputPair<?, ? extends Number> example : data)
+            {
+                final double value = example.getOutput().doubleValue();
+                if (value > max)
+                {
+                    max = value;
+                }
+            }
+        }
+        return max;
+    }
 
     /**
      * Creates a list containing all of the input values from the given data.

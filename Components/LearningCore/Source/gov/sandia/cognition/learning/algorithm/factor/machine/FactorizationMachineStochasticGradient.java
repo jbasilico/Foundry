@@ -173,14 +173,18 @@ public class FactorizationMachineStochasticGradient
         final Vector input = example.getInput();
         final double label = example.getOutput();
         final double weight = DatasetUtil.getWeight(example);
-        final double prediction = this.result.evaluateAsDouble(input);
+        final double rawOutput = this.result.evaluateWithoutActivation(input);
+        final double prediction = this.result.activationFunction == null
+            ? rawOutput 
+            : this.result.activationFunction.evaluate(rawOutput);
+        
 // TODO: Make the objective more pluggable. Its a bit odd for cases like a 
 // logistic loss to then use a squared error objective.
         final double error = prediction - label;
         double multiplier = error;
         if (this.activationFunction != null)
         {
-            multiplier *= this.activationFunction.differentiate(prediction);
+            multiplier *= this.activationFunction.differentiate(rawOutput);
         }
         
         // Compute the step size for this example.

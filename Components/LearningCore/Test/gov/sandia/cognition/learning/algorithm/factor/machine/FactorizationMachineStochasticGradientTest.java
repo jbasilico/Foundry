@@ -285,17 +285,17 @@ public class FactorizationMachineStochasticGradientTest
 //        instance.addIterativeAlgorithmListener(new IterationMeasurablePerformanceReporter());
         instance.addIterativeAlgorithmListener(new AbstractIterativeAlgorithmListener()
         {
-            @Override
-            public void algorithmStarted(IterativeAlgorithm algorithm)
-            {
-                ((FactorizationMachineStochasticGradient) algorithm).getResult().setFactors(
-                    MatrixFactory.getDenseDefault().copyArray(
-                        new double[][]
-                        {
-                            { -0.1201016261284642, -0.06062434870539421, 0.06757668965424421, 0.026491448013935683, -0.00037904759494807581 },
-                            { -0.021209459536853843, -0.021697366328492208, -0.073465046363568196, 0.1543303040794223, -0.11537419120183941 }
-                        }));
-            }
+//            @Override
+//            public void algorithmStarted(IterativeAlgorithm algorithm)
+//            {
+//                ((FactorizationMachineStochasticGradient) algorithm).getResult().setFactors(
+//                    MatrixFactory.getDenseDefault().copyArray(
+//                        new double[][]
+//                        {
+//                            { -0.1201016261284642, -0.06062434870539421, 0.06757668965424421, 0.026491448013935683, -0.00037904759494807581 },
+//                            { -0.021209459536853843, -0.021697366328492208, -0.073465046363568196, 0.1543303040794223, -0.11537419120183941 }
+//                        }));
+//            }
 
             
             @Override

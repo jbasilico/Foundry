@@ -176,10 +176,11 @@ public class FactorizationMachineStochasticGradient
         final double prediction = this.result.evaluateAsDouble(input);
 // TODO: Make the objective more pluggable. Its a bit odd for cases like a 
 // logistic loss to then use a squared error objective.
-        double error = prediction - label;
+        final double error = prediction - label;
+        double multiplier = error;
         if (this.activationFunction != null)
         {
-            error *= this.activationFunction.differentiate(prediction);
+            multiplier *= this.activationFunction.differentiate(prediction);
         }
         
         // Compute the step size for this example.
@@ -189,7 +190,7 @@ public class FactorizationMachineStochasticGradient
         {
             // Update the bias term.
             final double oldBias = this.result.getBias();
-            final double biasChange = stepSize * (error 
+            final double biasChange = stepSize * (multiplier 
                 + this.biasRegularization * oldBias);
             this.result.setBias(oldBias - biasChange);
             this.totalChange += Math.abs(biasChange);
@@ -204,7 +205,7 @@ public class FactorizationMachineStochasticGradient
                 final int index = entry.getIndex();
                 final double value = entry.getValue();
                 final double weightChange = stepSize * 
-                    (error * value 
+                    (multiplier * value 
                     + this.weightRegularization * weights.get(index));
 
                 weights.decrement(index, weightChange);
@@ -234,7 +235,7 @@ public class FactorizationMachineStochasticGradient
                     final double factorElement = factors.get(k, index);
                     final double gradient = value * (sum - value * factorElement);
                     
-                    final double factorChange = stepSize * (error * gradient 
+                    final double factorChange = stepSize * (multiplier * gradient 
                         + this.factorRegularization * factorElement);
                     factors.decrement(k, index, factorChange);
                     this.totalChange += Math.abs(factorChange);

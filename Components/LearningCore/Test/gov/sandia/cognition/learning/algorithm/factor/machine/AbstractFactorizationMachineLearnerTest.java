@@ -9,9 +9,10 @@
 package gov.sandia.cognition.learning.algorithm.factor.machine;
 
 import gov.sandia.cognition.learning.data.DefaultInputOutputPair;
+import gov.sandia.cognition.learning.function.scalar.SigmoidFunction;
+import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
 import gov.sandia.cognition.math.matrix.VectorFactory;
 import gov.sandia.cognition.util.NamedValue;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import org.junit.Test;
@@ -58,6 +59,7 @@ public class AbstractFactorizationMachineLearnerTest
         double factorRegularization = AbstractFactorizationMachineLearner.DEFAULT_FACTOR_REGULARIZATION;
         double seedScale = AbstractFactorizationMachineLearner.DEFAULT_SEED_SCALE;
         int maxIterations = AbstractFactorizationMachineLearner.DEFAULT_MAX_ITERATIONS;
+        DifferentiableUnivariateScalarFunction activationFunction = null;
         AbstractFactorizationMachineLearner instance =
             new DummyFactorizationMachineLearner();
         assertEquals(factorCount, instance.getFactorCount());
@@ -66,6 +68,7 @@ public class AbstractFactorizationMachineLearnerTest
         assertEquals(factorRegularization, instance.getFactorRegularization(), 0.0);
         assertEquals(seedScale, instance.getSeedScale(), 0.0);
         assertEquals(maxIterations, instance.getMaxIterations());
+        assertSame(activationFunction, instance.getActivationFunction());
         assertNotNull(instance.getRandom());
         assertSame(instance.getRandom(), instance.getRandom());
         
@@ -85,6 +88,7 @@ public class AbstractFactorizationMachineLearnerTest
         assertEquals(factorRegularization, instance.getFactorRegularization(), 0.0);
         assertEquals(seedScale, instance.getSeedScale(), 0.0);
         assertEquals(maxIterations, instance.getMaxIterations());
+        assertSame(activationFunction, instance.getActivationFunction());
         assertSame(random, instance.getRandom());
         
         // No negative factor counts.
@@ -519,6 +523,34 @@ public class AbstractFactorizationMachineLearnerTest
         }
     }
 
+    /**
+     * Test of getActivationFunction method, of class AbstractFactorizationMachineLearner.
+     */
+    @Test
+    public void testGetActivationFunction()
+    {
+        this.testSetActivationFunction();
+    }
+
+    /**
+     * Test of setActivationFunction method, of class AbstractFactorizationMachineLearner.
+     */
+    @Test
+    public void testSetActivationFunction()
+    {
+        DifferentiableUnivariateScalarFunction activationFunction = null;
+        AbstractFactorizationMachineLearner instance = this.createInstance();
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = new SigmoidFunction();
+        instance.setActivationFunction(activationFunction);
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = null;
+        instance.setActivationFunction(activationFunction);
+        assertSame(activationFunction, instance.getActivationFunction());
+    }
+    
     /**
      * Test of getRandom method, of class AbstractFactorizationMachineLearner.
      */

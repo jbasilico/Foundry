@@ -8,6 +8,8 @@
 
 package gov.sandia.cognition.learning.algorithm.factor.machine;
 
+import gov.sandia.cognition.learning.function.scalar.SigmoidFunction;
+import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.MatrixFactory;
 import gov.sandia.cognition.math.matrix.Vector;
@@ -48,10 +50,12 @@ public class FactorizationMachineTest
         double bias = 0.0;
         Vector weights = null;
         Matrix factors = null;
+        DifferentiableUnivariateScalarFunction activationFunction = null;
         FactorizationMachine instance = new FactorizationMachine();
         assertEquals(bias, instance.getBias(), 0.0);
         assertSame(weights, instance.getWeights());
         assertSame(factors, instance.getFactors());
+        assertSame(activationFunction, instance.getActivationFunction());
         
         instance = new FactorizationMachine(12, 5);
         assertEquals(bias, instance.getBias(), 0.0);
@@ -68,6 +72,14 @@ public class FactorizationMachineTest
         assertEquals(bias, instance.getBias(), 0.0);
         assertSame(weights, instance.getWeights());
         assertSame(factors, instance.getFactors());
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = new SigmoidFunction();
+        instance = new FactorizationMachine(bias, weights, factors, activationFunction);
+        assertEquals(bias, instance.getBias(), 0.0);
+        assertSame(weights, instance.getWeights());
+        assertSame(factors, instance.getFactors());
+        assertSame(activationFunction, instance.getActivationFunction());
     }
     
     /**
@@ -159,7 +171,13 @@ public class FactorizationMachineTest
             }
             
             assertEquals(expected, instance.evaluateAsDouble(x), epsilon);
+            
+            instance.setActivationFunction(new SigmoidFunction());
+            assertEquals(SigmoidFunction.logistic(expected), instance.evaluateAsDouble(x), epsilon);
+            assertEquals(expected, instance.evaluateWithoutActivation(x), epsilon);
+            instance.setActivationFunction(null);
         }
+        
     }
 
     /**
@@ -213,7 +231,7 @@ public class FactorizationMachineTest
         
         int d = 3;
         instance.setWeights(VectorFactory.getDenseDefault().createVector(d));
-        input = vf.createUniformRandom(d, -10, 10, random);
+        input = vf.createUniformRandom(d, -1, 1, random);
         result = instance.computeParameterGradient(input);
         assertEquals(1 + d, result.getDimensionality());
         assertEquals(1.0, result.getElement(0), 0.0);
@@ -221,8 +239,10 @@ public class FactorizationMachineTest
         
         int k = 2;
         instance.setFactors(MatrixFactory.getDenseDefault().createUniformRandom(k, d, -10, 10, random));
-        input = vf.createUniformRandom(d, -10, 10, random);
+        input = vf.createUniformRandom(d, -1, 1, random);
         result = instance.computeParameterGradient(input);
+        assertEquals(result, instance.computeParameterGradientWithoutActivation(input));
+        Vector resultWithoutActivation = result;
         assertEquals(10, result.getDimensionality());
         assertEquals(1.0, result.getElement(0), 0.0);
         assertEquals(input, result.subVector(1, d));
@@ -243,6 +263,36 @@ public class FactorizationMachineTest
                         expected += xl * instance.getFactors().getElement(f, j) * input.getElement(j);
                     }
                 }
+                assertEquals(expected, actual, epsilon);
+            }
+        }
+        
+        instance.setActivationFunction(new SigmoidFunction());
+        double inputWithoutActivation = instance.evaluateWithoutActivation(input);
+        double activationDerivative = SigmoidFunction.logistic(inputWithoutActivation) * (1.0 - SigmoidFunction.logistic(inputWithoutActivation));
+        result = instance.computeParameterGradient(input);
+        assertEquals(resultWithoutActivation, instance.computeParameterGradientWithoutActivation(input));
+        assertEquals(10, result.getDimensionality());
+        assertEquals(activationDerivative, result.getElement(0), 0.0);
+        assertEquals(input.scale(activationDerivative), result.subVector(1, d));
+        
+        factorGradients = result.subVector(d + 1, d + d * k);
+        for (int f = 0; f < k; f++)
+        {
+            for (int l = 0; l < d; l++)
+            {
+                double actual = factorGradients.getElement(f * d + l);
+                
+                double expected = 0.0;
+                for (int j = 0; j < d; j++)
+                {
+                    if (j != l)
+                    {
+                        double xl = input.getElement(l);
+                        expected += xl * instance.getFactors().getElement(f, j) * input.getElement(j);
+                    }
+                }
+                expected *= activationDerivative;
                 assertEquals(expected, actual, epsilon);
             }
         }
@@ -499,6 +549,34 @@ public class FactorizationMachineTest
         factors = null;
         instance.setFactors(factors);
         assertSame(factors, instance.getFactors());
+    }
+    
+    /**
+     * Test of getActivationFunction method, of class FactorizationMachine.
+     */
+    @Test
+    public void testGetActivationFunction()
+    {
+        this.testSetActivationFunction();
+    }
+
+    /**
+     * Test of setActivationFunction method, of class FactorizationMachine.
+     */
+    @Test
+    public void testSetActivationFunction()
+    {
+        DifferentiableUnivariateScalarFunction activationFunction = null;
+        FactorizationMachine instance = new FactorizationMachine();
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = new SigmoidFunction();
+        instance.setActivationFunction(activationFunction);
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = null;
+        instance.setActivationFunction(activationFunction);
+        assertSame(activationFunction, instance.getActivationFunction());
     }
     
 }

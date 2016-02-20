@@ -11,11 +11,13 @@ package gov.sandia.cognition.learning.algorithm.factor.machine;
 import gov.sandia.cognition.algorithm.MeasurablePerformanceAlgorithm;
 import gov.sandia.cognition.learning.algorithm.AbstractAnytimeSupervisedBatchLearner;
 import gov.sandia.cognition.learning.data.DatasetUtil;
+import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.MatrixFactory;
 import gov.sandia.cognition.math.matrix.Vector;
 import gov.sandia.cognition.math.matrix.VectorFactory;
 import gov.sandia.cognition.util.ArgumentChecker;
+import gov.sandia.cognition.util.ObjectUtil;
 import gov.sandia.cognition.util.Randomized;
 import java.util.Random;
 
@@ -77,6 +79,9 @@ public abstract class AbstractFactorizationMachineLearner
      */
     protected double seedScale;
     
+    /** Activation function for output. Null means it is linear. */
+    protected DifferentiableUnivariateScalarFunction activationFunction;
+    
     /** The random number generator to use. */
     protected Random random;
     
@@ -136,6 +141,7 @@ public abstract class AbstractFactorizationMachineLearner
         this.setWeightRegularization(weightRegularization);
         this.setFactorRegularization(factorRegularization);
         this.setSeedScale(seedScale);
+        this.setActivationFunction(null);
         this.setRandom(random);
     }
     
@@ -169,7 +175,8 @@ public abstract class AbstractFactorizationMachineLearner
         }
         
         // Initialize the factorization machine.
-        this.result = new FactorizationMachine(0.0, weights, factors);
+        this.result = new FactorizationMachine(0.0, weights, factors,
+            ObjectUtil.cloneSmart(this.activationFunction));
         
         return true;
     }
@@ -372,6 +379,33 @@ public abstract class AbstractFactorizationMachineLearner
     {
         ArgumentChecker.assertIsNonNegative("seedScale", seedScale);
         this.seedScale = seedScale;
+    }
+
+    /**
+     * Gets the activation function to use for the factorization machine output
+     * value. Null means linear activation.
+     * 
+     * @return 
+     *      The activation function to use in the factorization machine. Null
+     *      means linear activation.
+     */
+    public DifferentiableUnivariateScalarFunction getActivationFunction()
+    {
+        return this.activationFunction;
+    }
+
+    /**
+     * Sets the activation function to use for the factorization machine output
+     * value. Null means linear activation.
+     * 
+     * @param   activationFunction 
+     *      The activation function to use in the factorization machine. Null
+     *      means linear activation.
+     */
+    public void setActivationFunction(
+        final DifferentiableUnivariateScalarFunction activationFunction)
+    {
+        this.activationFunction = activationFunction;
     }
     
     @Override

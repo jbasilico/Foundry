@@ -15,6 +15,8 @@ import gov.sandia.cognition.annotation.PublicationType;
 import gov.sandia.cognition.collection.CollectionUtil;
 import gov.sandia.cognition.learning.data.DatasetUtil;
 import gov.sandia.cognition.learning.data.InputOutputPair;
+import gov.sandia.cognition.learning.function.cost.DifferentiableCostFunction;
+import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.Vector;
 import gov.sandia.cognition.math.matrix.VectorEntry;
@@ -172,7 +174,13 @@ public class FactorizationMachineStochasticGradient
         final double label = example.getOutput();
         final double weight = DatasetUtil.getWeight(example);
         final double prediction = this.result.evaluateAsDouble(input);
-        final double error = prediction - label;
+// TODO: Make the objective more pluggable. Its a bit odd for cases like a 
+// logistic loss to then use a squared error objective.
+        double error = prediction - label;
+        if (this.activationFunction != null)
+        {
+            error *= this.activationFunction.differentiate(prediction);
+        }
         
         // Compute the step size for this example.
         final double stepSize = this.learningRate * weight;

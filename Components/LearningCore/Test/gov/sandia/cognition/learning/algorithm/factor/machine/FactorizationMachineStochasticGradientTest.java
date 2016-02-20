@@ -10,11 +10,14 @@ package gov.sandia.cognition.learning.algorithm.factor.machine;
 
 import gov.sandia.cognition.algorithm.IterativeAlgorithm;
 import gov.sandia.cognition.algorithm.event.AbstractIterativeAlgorithmListener;
+import gov.sandia.cognition.learning.data.DatasetUtil;
 import gov.sandia.cognition.learning.data.DefaultInputOutputPair;
 import gov.sandia.cognition.learning.data.InputOutputPair;
+import gov.sandia.cognition.learning.function.scalar.ClipFunction;
 import gov.sandia.cognition.learning.performance.MeanSquaredErrorEvaluator;
 import gov.sandia.cognition.math.matrix.MatrixFactory;
 import gov.sandia.cognition.math.matrix.Vector;
+import gov.sandia.cognition.math.matrix.VectorEntry;
 import gov.sandia.cognition.math.matrix.VectorFactory;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -254,21 +257,47 @@ public class FactorizationMachineStochasticGradientTest
             }
         }
         
+//        for (InputOutputPair<Vector, Double> example : trainData)
+//        {
+//            System.out.print("" + example.getOutput());
+//            for (VectorEntry entry : example.getInput())
+//            {
+//                System.out.print(" " + entry.getIndex() + ":" + entry.getValue());
+//            }
+//            System.out.println();
+//        }
+        
         FactorizationMachineStochasticGradient instance =
             this.createInstance();
+        instance.setBiasEnabled(true);
+        instance.setWeightsEnabled(true);
         instance.setFactorCount(k);
-        instance.setSeedScale(0.2);
+        instance.setSeedScale(0.1);
         instance.setBiasRegularization(0.0);
         instance.setWeightRegularization(0.01);
         instance.setFactorRegularization(0.1);
         instance.setLearningRate(0.00005);
         instance.setMaxIterations(1000);
         instance.setRandom(random);
-        
+        instance.setActivationFunction(new ClipFunction(
+            Math.min(DatasetUtil.findMinOutput(trainData), DatasetUtil.findMinOutput(testData)),
+            Math.max(DatasetUtil.findMaxOutput(trainData), DatasetUtil.findMaxOutput(testData))));
 //        instance.addIterativeAlgorithmListener(new IterationMeasurablePerformanceReporter());
         instance.addIterativeAlgorithmListener(new AbstractIterativeAlgorithmListener()
         {
+            @Override
+            public void algorithmStarted(IterativeAlgorithm algorithm)
+            {
+                ((FactorizationMachineStochasticGradient) algorithm).getResult().setFactors(
+                    MatrixFactory.getDenseDefault().copyArray(
+                        new double[][]
+                        {
+                            { -0.1201016261284642, -0.06062434870539421, 0.06757668965424421, 0.026491448013935683, -0.00037904759494807581 },
+                            { -0.021209459536853843, -0.021697366328492208, -0.073465046363568196, 0.1543303040794223, -0.11537419120183941 }
+                        }));
+            }
 
+            
             @Override
             public void stepEnded(IterativeAlgorithm algorithm)
             {

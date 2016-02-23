@@ -13,6 +13,7 @@ import gov.sandia.cognition.collection.CollectionUtil;
 import gov.sandia.cognition.learning.algorithm.AbstractAnytimeSupervisedBatchLearner;
 import gov.sandia.cognition.learning.data.DatasetUtil;
 import gov.sandia.cognition.learning.data.InputOutputPair;
+import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.Vector;
 import gov.sandia.cognition.math.matrix.VectorFactory;
@@ -68,14 +69,21 @@ public class TensorFactorizationMachineStochasticGradient
      */
     protected double[] seedScalePerWay;
     
+    /** Activation function for output. Null means it is linear. */
+    protected DifferentiableUnivariateScalarFunction activationFunction;
+    
     /** The random number generator to use. */
     protected Random random;
+    
+    /** The current factorization machine output learned by the algorithm. */
+    protected transient TensorFactorizationMachine result;
     
     /** The input data represented as a list for fast access. */
     protected transient ArrayList<? extends InputOutputPair<? extends Vector, Double>> dataList;
         
-    /** The current factorization machine output learned by the algorithm. */
-    protected transient TensorFactorizationMachine result;
+    /** The sum of weights across the data. For unweighted data this is the
+     *  size of the data list. */
+    protected transient double weightSum;
     
     /** Contains regularization weights for each parameter in the parameter
      *  vector of the factorization machine. */
@@ -121,7 +129,9 @@ public class TensorFactorizationMachineStochasticGradient
         int dimensionality = DatasetUtil.getInputDimensionality(this.data);
         
         // Initialize the factorization.
-        this.result = new TensorFactorizationMachine(dimensionality, this.factorCountPerWay);
+        this.result = new TensorFactorizationMachine(
+            dimensionality, this.factorCountPerWay);
+        this.result.setActivationFunction(this.getActivationFunction());
         
         if (!this.weightsEnabled)
         {
@@ -176,6 +186,7 @@ public class TensorFactorizationMachineStochasticGradient
         }
         
         this.dataList = CollectionUtil.asArrayList(this.data);
+        this.weightSum = DatasetUtil.sumWeights(this.dataList);
         this.totalError = 0.0;
         this.totalChange = 0.0;
         
@@ -212,15 +223,23 @@ public class TensorFactorizationMachineStochasticGradient
         final Vector input = example.getInput();
         final double label = example.getOutput();
         final double weight = DatasetUtil.getWeight(example);
-        final double prediction = this.result.evaluateAsDouble(input);
+        final double rawOutput = this.result.evaluateWithoutActivation(input);
+        final double prediction = this.result.activationFunction == null
+            ? rawOutput 
+            : this.result.activationFunction.evaluate(rawOutput);
         final double error = prediction - label;
+        double multiplier = error;
+
+        if (this.activationFunction != null)
+        {
+            multiplier *= this.activationFunction.differentiate(rawOutput);
+        }
         
         // Compute the step size for this example.
-// TODO: Should this be total weight?
-        final double stepSize = this.learningRate * weight / this.data.size();
+        final double stepSize = this.learningRate * weight;
         
         final Vector delta = this.result.computeParameterGradient(input);
-        delta.scaleEquals(-stepSize * error);
+        delta.scaleEquals(-stepSize * multiplier);
         delta.scaledPlusEquals(-stepSize, 
             this.result.getActiveParameterVector(input).dotTimes(
                 this.regularizationMask));
@@ -287,8 +306,7 @@ public class TensorFactorizationMachineStochasticGradient
      */
     public double getObjective()
     {
-// TODO: Should data size be total weight?
-        return 0.5 * this.getTotalError() / this.data.size()
+        return 0.5 * this.getTotalError() / this.weightSum
             + 0.5 * this.getRegularizationPenalty();
     }
     
@@ -322,6 +340,34 @@ public class TensorFactorizationMachineStochasticGradient
     {
         this.weightsEnabled = weightsEnabled;
     }
+    
+    /**
+     * Gets the activation function to use for the factorization machine output
+     * value. Null means linear activation.
+     * 
+     * @return 
+     *      The activation function to use in the factorization machine. Null
+     *      means linear activation.
+     */
+    public DifferentiableUnivariateScalarFunction getActivationFunction()
+    {
+        return this.activationFunction;
+    }
+
+    /**
+     * Sets the activation function to use for the factorization machine output
+     * value. Null means linear activation.
+     * 
+     * @param   activationFunction 
+     *      The activation function to use in the factorization machine. Null
+     *      means linear activation.
+     */
+    public void setActivationFunction(
+        final DifferentiableUnivariateScalarFunction activationFunction)
+    {
+        this.activationFunction = activationFunction;
+    }
+    
 
     @Override
     public Random getRandom()

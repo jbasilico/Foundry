@@ -13,6 +13,7 @@ import gov.sandia.cognition.annotation.PublicationReferences;
 import gov.sandia.cognition.annotation.PublicationType;
 import gov.sandia.cognition.learning.algorithm.gradient.ParameterGradientEvaluator;
 import gov.sandia.cognition.learning.function.regression.AbstractRegressor;
+import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.MatrixFactory;
 import gov.sandia.cognition.math.matrix.Vector;
@@ -82,6 +83,9 @@ public class TensorFactorizationMachine
      *  dimension. Cannot be null. */
     protected Matrix[] factorsPerWay;
     
+    /** Activation function for output. Null means it is linear. */
+    protected DifferentiableUnivariateScalarFunction activationFunction;
+    
     /** The total number of factors across all ways. */
     protected int totalFactors;
 
@@ -150,11 +154,36 @@ public class TensorFactorizationMachine
         final Vector weights,
         final Matrix... factorsPerWay)
     {
+        this(null, bias, weights, factorsPerWay);
+    }
+    
+    /**
+     * Creates a new {@link TensorFactorizationMachine} with the given
+     * parameters.
+     * 
+     * @param   activationFunction
+     *      The activation function to use for the output. Null means linear.
+     * @param   bias
+     *      The bias value.
+     * @param   weights
+     *      The weight vector of dimensionality d. May be null.
+     * @param   factorsPerWay 
+     *      An array of k_l by d factor matrices for each way l starting from
+     *      pairwise interactions. Cannot be null. Can be empty. Each factor
+     *      matrix can be null to mean that interaction is not used.
+     */
+    public TensorFactorizationMachine(
+        final DifferentiableUnivariateScalarFunction activationFunction,
+        final double bias,
+        final Vector weights,
+        final Matrix... factorsPerWay)
+    {
         super();
         
         this.setBias(bias);
         this.setWeights(weights);
         this.setFactorsPerWay(factorsPerWay);
+        this.setActivationFunction(activationFunction);
     }
     
     @Override
@@ -168,6 +197,31 @@ public class TensorFactorizationMachine
     
     @Override
     public double evaluateAsDouble(
+        final Vector input)
+    {
+        double result = this.evaluateWithoutActivation(input);
+        
+        if (this.activationFunction != null)
+        {
+            // Apply the activation function.
+            result = this.activationFunction.evaluate(result);
+        }
+        // else - Use a linear function which is no transformation.
+        
+        return result;
+    }
+    
+    /**
+     * Evaluates the factorization machine without applying the activation
+     * function to the output.
+     * 
+     * @param   input
+     *      The input value.
+     * @return 
+     *      The output of the factorization machine before applying the
+     *      activation function.
+     */
+    public double evaluateWithoutActivation(
         final Vector input)
     {
         double result = this.bias;
@@ -254,6 +308,31 @@ public class TensorFactorizationMachine
     
     @Override
     public Vector computeParameterGradient(
+        final Vector input)
+    {
+        Vector result = this.computeParameterGradientWithoutActivation(input);
+        
+        if (this.activationFunction != null)
+        {
+            // Differentiate the activation function.
+            final double scalar = this.activationFunction.differentiate(
+                this.evaluateWithoutActivation(input));
+            result.scaleEquals(scalar);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Computes the parameter gradient without applying the activation function.
+     * 
+     * @param   input
+     *      The input vector.
+     * @return 
+     *      The parameter gradients without applying the activation function
+     *      to them.
+     */
+    public Vector computeParameterGradientWithoutActivation(
         final Vector input)
     {
         final int d = this.getInputDimensionality();
@@ -915,5 +994,31 @@ public class TensorFactorizationMachine
         this.factorsPerWay = factorsPerWay;
         this.totalFactors = totalFactors;
     }
+    
+    /**
+     * Gets the activation function to use for the output value. Null means 
+     * linear activation.
+     * 
+     * @return 
+     *      The activation function to use. Null means linear activation.
+     */
+    public DifferentiableUnivariateScalarFunction getActivationFunction()
+    {
+        return this.activationFunction;
+    }
+
+    /**
+     * Sets the activation function to use for the output value. Null means 
+     * linear activation.
+     * 
+     * @param   activationFunction 
+     *      The activation function to use. Null means linear activation.
+     */
+    public void setActivationFunction(
+        final DifferentiableUnivariateScalarFunction activationFunction)
+    {
+        this.activationFunction = activationFunction;
+    }
+    
     
 }

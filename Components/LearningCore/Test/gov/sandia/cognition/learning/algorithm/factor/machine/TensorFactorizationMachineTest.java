@@ -8,15 +8,15 @@
 
 package gov.sandia.cognition.learning.algorithm.factor.machine;
 
+import gov.sandia.cognition.learning.function.scalar.SigmoidFunction;
+import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.MatrixFactory;
 import gov.sandia.cognition.math.matrix.Vector;
 import gov.sandia.cognition.math.matrix.VectorFactory;
 import gov.sandia.cognition.math.matrix.mtj.Vector1;
 import gov.sandia.cognition.math.matrix.mtj.Vector3;
-import gov.sandia.cognition.util.ArgumentChecker;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import static org.junit.Assert.*;
@@ -55,10 +55,12 @@ public class TensorFactorizationMachineTest
         double bias = 0.0;
         Vector weights = null;
         Matrix[] factorsPerWay = new Matrix[0];
+        DifferentiableUnivariateScalarFunction activationFunction = null;
         TensorFactorizationMachine instance = new TensorFactorizationMachine();
         assertEquals(bias, instance.getBias(), 0.0);
         assertSame(weights, instance.getWeights());
         assertArrayEquals(factorsPerWay, instance.getFactorsPerWay());
+        assertSame(activationFunction, instance.getActivationFunction());
         
         instance = new TensorFactorizationMachine(12, 5, 4);
         assertEquals(bias, instance.getBias(), 0.0);
@@ -70,6 +72,7 @@ public class TensorFactorizationMachineTest
         assertEquals(0.0, instance.getWeights().sum(), 0.0);
         assertEquals(0.0, instance.getFactors(2).sumOfRows().sum(), 0.0);
         assertEquals(0.0, instance.getFactors(3).sumOfRows().sum(), 0.0);
+        assertSame(activationFunction, instance.getActivationFunction());
         
         bias = 0.4;
         weights = VectorFactory.getSparseDefault().createVector(11);
@@ -80,6 +83,14 @@ public class TensorFactorizationMachineTest
         assertEquals(bias, instance.getBias(), 0.0);
         assertSame(weights, instance.getWeights());
         assertSame(factorsPerWay, instance.getFactorsPerWay());
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = new SigmoidFunction();
+        instance = new TensorFactorizationMachine(activationFunction, bias, weights, factorsPerWay);
+        assertEquals(bias, instance.getBias(), 0.0);
+        assertSame(weights, instance.getWeights());
+        assertSame(factorsPerWay, instance.getFactorsPerWay());
+        assertSame(activationFunction, instance.getActivationFunction());
     }
 
     /**
@@ -943,6 +954,34 @@ public class TensorFactorizationMachineTest
             }
             return result;
         }
+    }
+    
+    /**
+     * Test of getActivationFunction method, of class TensorFactorizationMachine.
+     */
+    @Test
+    public void testGetActivationFunction()
+    {
+        this.testSetActivationFunction();
+    }
+
+    /**
+     * Test of setActivationFunction method, of class TensorFactorizationMachine.
+     */
+    @Test
+    public void testSetActivationFunction()
+    {
+        DifferentiableUnivariateScalarFunction activationFunction = null;
+        TensorFactorizationMachine instance = new TensorFactorizationMachine();
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = new SigmoidFunction();
+        instance.setActivationFunction(activationFunction);
+        assertSame(activationFunction, instance.getActivationFunction());
+        
+        activationFunction = null;
+        instance.setActivationFunction(activationFunction);
+        assertSame(activationFunction, instance.getActivationFunction());
     }
     
 }

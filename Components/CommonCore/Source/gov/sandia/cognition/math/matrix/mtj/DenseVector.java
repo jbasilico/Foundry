@@ -204,6 +204,36 @@ public class DenseVector
     }
 
     @Override
+    public void increment(
+        final int index)
+    {
+        this.array[index]++;
+    }
+
+    @Override
+    public void increment(
+        final int index,
+        final double value)
+    {
+        this.array[index] += value;
+    }
+
+    @Override
+    public void decrement(
+        final int index)
+    {
+        this.array[index]--;
+    }
+
+    @Override
+    public void decrement(
+        final int index,
+        final double value)
+    {
+        this.array[index] -= value;
+    }
+
+    @Override
     public int getDimensionality()
     {
         // Avoid overhead of: this.internalVector.size()

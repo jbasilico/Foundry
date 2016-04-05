@@ -15,8 +15,7 @@ import gov.sandia.cognition.annotation.PublicationType;
 import gov.sandia.cognition.collection.CollectionUtil;
 import gov.sandia.cognition.learning.data.DatasetUtil;
 import gov.sandia.cognition.learning.data.InputOutputPair;
-import gov.sandia.cognition.learning.function.cost.DifferentiableCostFunction;
-import gov.sandia.cognition.math.DifferentiableUnivariateScalarFunction;
+import gov.sandia.cognition.math.MutableDouble;
 import gov.sandia.cognition.math.matrix.Matrix;
 import gov.sandia.cognition.math.matrix.Vector;
 import gov.sandia.cognition.math.matrix.VectorEntry;
@@ -181,10 +180,14 @@ public class FactorizationMachineStochasticGradient
 // TODO: Make the objective more pluggable. Its a bit odd for cases like a 
 // logistic loss to then use a squared error objective.
         final double error = prediction - label;
-        double multiplier = error;
-        if (this.activationFunction != null)
+        final double multiplier;
+        if (this.activationFunction == null)
         {
-            multiplier *= this.activationFunction.differentiate(rawOutput);
+            multiplier = error;
+        }
+        else
+        {
+            multiplier = error * this.activationFunction.differentiate(rawOutput);
         }
         
         // Compute the step size for this example.
@@ -204,18 +207,17 @@ public class FactorizationMachineStochasticGradient
         {
             // Update the weight terms.
             final Vector weights = this.result.getWeights();
-            for (final VectorEntry entry : input)
+            input.forEachEntry((
+                final int index, 
+                final double value) ->
             {
-                final int index = entry.getIndex();
-                final double value = entry.getValue();
                 final double weightChange = stepSize * 
                     (multiplier * value 
                     + this.weightRegularization * weights.get(index));
 
                 weights.decrement(index, weightChange);
                 this.totalChange += Math.abs(weightChange);
-            }
-            this.result.setWeights(weights);
+            });
         }
         
         if (this.isFactorsEnabled())
@@ -223,30 +225,35 @@ public class FactorizationMachineStochasticGradient
             // Update the factor terms.
             final Matrix factors = this.result.getFactors();
 
-// TODO: This same calculation is needed in model evaluation.        
+            // This is used as a container in an inner loop so created once.
+            final MutableDouble sum = new MutableDouble();
             for (int k = 0; k < this.factorCount; k++)
             {
-                double sum = 0.0;
-                for (final VectorEntry entry : input)
+// TODO: This same calculation is needed in model evaluation.        
+                // These are used to do the call-back diven computation of the
+                // loops over the sparse vectors.
+                final int factorIndex = k;
+                sum.value = 0.0;
+                input.forEachEntry((
+                    final int index,
+                    final double value) ->
                 {
-                    sum += entry.getValue() * factors.get(k, entry.getIndex());
-                }
+                    sum.value += value * factors.get(factorIndex, index);
+                });
 
-                for (final VectorEntry entry : input)
+                input.forEachEntry((
+                    final int index,
+                    final double value) ->
                 {
-                    final int index = entry.getIndex();
-                    final double value = entry.getValue();
-                    final double factorElement = factors.get(k, index);
-                    final double gradient = value * (sum - value * factorElement);
+                    final double factorElement = factors.get(factorIndex, index);
+                    final double gradient = value * (sum.value - value * factorElement);
                     
                     final double factorChange = stepSize * (multiplier * gradient 
                         + this.factorRegularization * factorElement);
-                    factors.decrement(k, index, factorChange);
-                    this.totalChange += Math.abs(factorChange);
-                }
+                    factors.decrement(factorIndex, index, factorChange);
+                    this.totalChange += Math.abs(factorChange); 
+                });
             }
-            
-            this.result.setFactors(factors);
         }
         
         this.totalError += error * error;

@@ -203,18 +203,23 @@ public class FactorizationMachine
             // We loop over k to do the performance improvement trick that
             // allows O(kd) computation instead of O(kd^2).
             final int factorCount = this.getFactorCount();
+            final FactorActivation activation = new FactorActivation(
+                input, this.factors);
             for (int k = 0; k < factorCount; k++)
             {
-                double sum = 0.0;
-                double sumSquares = 0.0;
-                for (final VectorEntry entry : input)
-                {
-                    final double product = entry.getValue()
-                        * this.factors.getElement(k, entry.getIndex());
-                    sum += product;
-                    sumSquares += product * product;
-                }
-                result += 0.5 * (sum * sum - sumSquares);
+                // This is a faster way of looping through the non-zeros in
+                // the input. It is equivalent to the code below.
+                result += activation.activation(k);
+                // double sum = 0.0;
+                // double sumSquares = 0.0;
+                // for (final VectorEntry entry : input)
+                // {
+                //    final double product = entry.getValue()
+                //        * this.factors.getElement(k, entry.getIndex());
+                //    sum += product;
+                //    sumSquares += product * product;
+                // }
+                // result += 0.5 * (sum * sum - sumSquares);
             }
         }
         // else - No factors.
@@ -548,4 +553,82 @@ public class FactorizationMachine
         this.activationFunction = activationFunction;
     }
     
+    /**
+     * Implementation class to compute the activation of a factor in a callback
+     * driven way. This makes it efficient for looping over both dense and
+     * sparse vectors.
+     * 
+     * This class is not thread-safe as it uses internal fields for state.
+     */
+    private static class FactorActivation
+        implements Vector.IndexValueConsumer
+    {
+        /** The input vector to compute the activations for. */
+        private final Vector input;
+        
+        /** The k-by-d matrix of factors. */
+        private final Matrix factors;
+        
+        /** The current factor index. */
+        private int factorIndex;
+
+        /** The current sum of the individual activations along each dimension.
+         */
+        private double sum;
+
+        /** The sum of the squared activations across each dimension. */
+        private double sumOfSquares;
+        
+        /**
+         * Creates a new {@link FactorActivation}.
+         * 
+         * @param   input
+         *      The input vector to compute the activations for.
+         * @param   factors 
+         *      The k-by-d matrix of factors.
+         */
+        public FactorActivation(
+            final Vector input,
+            final Matrix factors)
+        {
+            this.input = input;
+            this.factors = factors;
+        }
+
+        /**
+         * Computes the activation for a given factor.
+         *
+         * @param factorIndex 
+         *      Index for the factor to compute.
+         * @return 
+         *      The activation for the factor.
+         */
+        public double activation(
+            final int factorIndex)
+        {
+            // Initialize the internal state.
+            this.factorIndex = factorIndex;
+            this.sum = 0.0;
+            this.sumOfSquares = 0.0;
+
+            // Compute the sum and sum of squares for the value along each
+            // dimension. Here we use the callback and update the fields.
+            this.input.forEachEntry(this);
+
+            // Return the final result based on the sums.
+            return 0.5 * (this.sum * this.sum - this.sumOfSquares);
+        }
+
+        @Override
+        public void consume(
+            final int featureIndex,
+            final double inputValue)
+        {
+            // This call-back is used in the loop of activation.
+            final double value = inputValue * this.factors.get(
+                this.factorIndex, featureIndex);
+            this.sum += value;
+            this.sumOfSquares += value * value;
+        }
+    }
 }

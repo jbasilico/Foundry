@@ -167,7 +167,7 @@ public abstract class AbstractMutableLongMap<KeyType>
     }
 
     @Override
-    public SimpleEntrySet<KeyType> entrySet()
+    public Set<? extends LongMap.Entry<KeyType>> entrySet()
     {
         return new SimpleEntrySet<KeyType>(this.map);
     }

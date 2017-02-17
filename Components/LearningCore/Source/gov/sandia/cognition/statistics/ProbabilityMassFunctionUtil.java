@@ -273,6 +273,12 @@ public class ProbabilityMassFunctionUtil
         final List<? extends DataType> domain,
         final Random random)
     {
+        if (cumulativeWeights.length <= 0 || cumulativeWeights[cumulativeWeights.length - 1] == 0.0)
+        {
+            // Nothing to sample.
+            return null;
+        }
+        
         final int index = DiscreteSamplingUtil.sampleIndexFromCumulativeProportions(
             random, cumulativeWeights);
         return domain.get(index);

@@ -26,7 +26,7 @@ import java.util.Map;
  * @param   <KeyType>
  *      The type of the key in the distribution.
  * @author  Justin Basiico
- * @since   3.4.0
+ * @since   3.4.4
  */
 public class DefaultCountDistribution<KeyType>
     extends AbstractCountDistribution<KeyType>
@@ -206,13 +206,13 @@ public class DefaultCountDistribution<KeyType>
     }
 
     @Override
-    public DistributionEstimator<KeyType, ? extends CountDistribution<KeyType>> getEstimator()
+    public DefaultCountDistribution.Estimator<KeyType> getEstimator()
     {
         return new DefaultCountDistribution.Estimator<>();
     }
 
     @Override
-    public CountDistribution.PMF<KeyType> getProbabilityFunction()
+    public DefaultCountDistribution.PMF<KeyType> getProbabilityFunction()
     {
         return new DefaultCountDistribution.PMF<>(this);
     }

@@ -22,12 +22,12 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * An abstract implementation of the {@code DataCounter} interface.
+ * An abstract implementation of the {@code CountDistribution} interface.
  * 
  * @param   <KeyType>
  *      The type of the key in the map.
  * @author  Justin Basiico
- * @since   3.4.0
+ * @since   3.4.4
  */
 public abstract class AbstractCountDistribution<KeyType>
     extends AbstractMutableLongMap<KeyType>
@@ -35,7 +35,7 @@ public abstract class AbstractCountDistribution<KeyType>
 {
 
     /**
-     * Creates a new {@code AbstractDataCounter}.
+     * Creates a new {@code AbstractCountDistribution}.
      * 
      * @param map
      *      Map that stores the data.
@@ -65,7 +65,7 @@ public abstract class AbstractCountDistribution<KeyType>
         double entropy = 0.0;
         final long total = this.getTotal();
         final double denom = (total != 0.0) ? total : 1.0;
-        for (LongMap.Entry<KeyType> entry : this.entrySet())
+        for (final LongMap.Entry<KeyType> entry : this.entrySet())
         {
             double p = entry.getValue() / denom;
             if (p != 0.0)
@@ -90,7 +90,7 @@ public abstract class AbstractCountDistribution<KeyType>
         final KeyType key)
     {
         final long total = this.getTotal();
-        return (total != 0) ? (this.get(key) / this.getTotal()) : 0.0;
+        return (total != 0) ? ((double) this.get(key) / total) : 0.0;
     }
 
     @Override
